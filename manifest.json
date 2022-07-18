@@ -1,19 +1,19 @@
 {
   "files": {
     "fixes.js": {
-      "filename": "https://raw.githubusercontent.com/Clover-Lindo/lindo-game-base/master/fixes.js",
+      "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/master/fixes.js",
       "version": "1.4.0"
     },
     "fixes.css": {
-      "filename": "https://raw.githubusercontent.com/Clover-Lindo/lindo-game-base/master/fixes.css",
+      "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/master/fixes.css",
       "version": "1.0.1"
     },
     "index.html": {
-      "filename": "https://raw.githubusercontent.com/Clover-Lindo/lindo-game-base/master/index.html",
+      "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/master/index.html",
       "version": "1.2.0"
     },
     "regex.json": {
-      "filename": "https://raw.githubusercontent.com/Clover-Lindo/lindo-game-base/master/regex.json?v=1.6.0",
+      "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/master/regex.json?v=1.6.0",
       "version": "1.6.0"
     }
   }

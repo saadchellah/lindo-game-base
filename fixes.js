@@ -1,8 +1,7 @@
-window.gui.playerData.once("characterSelectedSuccess", function() {
+window.gui.playerData.once("characterSelectedSuccess", function () {
 
   /* Zoom fix */
-
-  let worldZoom = function(worldMap, e) {
+  let worldZoom = function (worldMap, e) {
     let zoom = - e.deltaY / 600;
     let previousZ = worldMap._scene.camera.zoomTarget;
     worldMap._scene.camera.zoomTo(worldMap._scene.camera.zoom * (1 + zoom));
@@ -12,7 +11,7 @@ window.gui.playerData.once("characterSelectedSuccess", function() {
     worldMap._loadChunksInView();
   };
 
-  let mapZoom = function(mapScene, e) {
+  let mapZoom = function (mapScene, e) {
     let zoom = - e.deltaY / 600;
     let previousZ = mapScene.camera.zoomTarget;
     mapScene.camera.zoomTo(mapScene.camera.zoom * (1 + zoom));
@@ -20,17 +19,17 @@ window.gui.playerData.once("characterSelectedSuccess", function() {
     let deltaZ = newZ / previousZ;
   };
 
-  window.gui.windowsContainer.getChildren().forEach(function(child) {
+  window.gui.windowsContainer.getChildren().forEach(function (child) {
     if (child.id == "worldMap") {
-      child.on('open', function() {
-        child._worldMap.rootElement.addEventListener('mousewheel', function(e) {
+      child.on('open', function () {
+        child._worldMap.rootElement.addEventListener('mousewheel', function (e) {
           worldZoom.call(this, child._worldMap, e);
         });
       });
     }
   });
 
-  window.foreground.rootElement.addEventListener('mousewheel', function(e) {
+  window.foreground.rootElement.addEventListener('mousewheel', function (e) {
     mapZoom.call(this, window.isoEngine.mapScene, e);
   });
 
@@ -48,7 +47,7 @@ var events = {
 
 var mouseDown = false;
 
-var handleEvents = function(e) {
+var handleEvents = function (e) {
   try {
     if (e.type === "mousedown") mouseDown = true;
     else if (e.type === "mouseup") mouseDown = false;
@@ -101,91 +100,6 @@ try {
   top.console.log(e);
 }
 
-
-/* Get stats */
-
-/**
- * The main goal of this code snippet is to understand how the users are using Lindo.
- * The data is anonymized, each record is not intended to be treated individually.
- */
-(function () {
-  /* DECLARATIONS */
-
-  // https://stackoverflow.com/a/52171480
-  const cyrb53 = function(str, seed = 0) {
-      let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
-      for (let i = 0, ch; i < str.length; i++) {
-          ch = str.charCodeAt(i);
-          h1 = Math.imul(h1 ^ ch, 2654435761);
-          h2 = Math.imul(h2 ^ ch, 1597334677);
-      }
-      h1 = Math.imul(h1 ^ (h1>>>16), 2246822507) ^ Math.imul(h2 ^ (h2>>>13), 3266489909);
-      h2 = Math.imul(h2 ^ (h2>>>16), 2246822507) ^ Math.imul(h1 ^ (h1>>>13), 3266489909);
-      return 4294967296 * (2097151 & h2) + (h1>>>0);
-  }
-
-  const Settings = window.top.eval("require('@electron/remote').require('electron-settings')")
-
-  /* Get VIP settings */
-
-  const vipSettingsOriginal = Settings.getSync('option.vip')
-  const vipSettings = JSON.parse(JSON.stringify(vipSettingsOriginal))
-  if (vipSettings.multi_account) {
-    delete vipSettings.multi_account.windows
-
-    // Prevent the master password from being sent over the network
-    if (vipSettings.multi_account.master_password) {
-      vipSettings.multi_account.master_password = 'REDACTED'
-    }
-
-    // Prevent any encoded password from being sent
-    if (vipSettings.multi_account.window && Array.isArray(vipSettings.multi_account.window)) {
-      vipSettings.multi_account.window.forEach(tabs => {
-        if (tabs && Array.isArray(tabs)) {
-          tabs.forEach(tab => {
-            if (tab.account_name_encrypted) tab.account_name_encrypted = 'REDACTED'
-            if (tab.password_encrypted) tab.password_encrypted = 'REDACTED'
-          })
-        }
-      })
-    }
-
-    // This data contains identifiable character name
-    if (vipSettings.auto_group.leader) {
-      vipSettings.auto_group.leader = 'REDACTED'
-    }
-
-    // This data contains identifiable characters names
-    if (vipSettings.auto_group.members) {
-      vipSettings.auto_group.members = 'REDACTED'
-    }
-  }
-
-  vipSettings.hidden_shop = Settings.getSync('option.general.hidden_shop')
-
-  /* Approximate unique ID */
-
-  const macAddress = Settings.getSync('macAddress')
-  const macAddressHash = cyrb53(macAddress, 7200084)
-
-  /* Send to server once logged in */
-
-  window.connectionManager.once('IdentificationSuccessMessage', (msg) => {
-    const body = {
-      mac_address_hash: macAddressHash,
-      account_id_hash: cyrb53('' + msg.accountId, 97333452),
-      vip_settings: vipSettings
-    }
-    fetch('https://api.lindo-app.com/stats.php', {
-      method: 'post',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    })
-  })
-})();
-
 /* Popups */
 
 (function () {
@@ -194,7 +108,7 @@ try {
    * @param {Record<string, { title: string, messages: string[] }>} texts
    * @param {{ url: string, text: string }} link
    */
-  async function sendPopup (texts, link) {
+  async function sendPopup(texts, link) {
     const languagesInitialized = new Promise(resolve => {
       const interval = setInterval(() => {
         if (window.Config && window.Config.language) {
