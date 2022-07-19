@@ -9,7 +9,13 @@
         window.buildVersion = window.top.buildVersion;
         window.appVersion = window.top.appVersion;
         window.appInfo = {
-          version: window.top.appVersion
+            version: window.top.appVersion
+        };
+
+        window._ = {
+            appVersion: window.appVersion,
+            buildVersion: window.buildVersion,
+            client: "android"
         };
 
         window.indexedDB = {};
