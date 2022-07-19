@@ -2,15 +2,15 @@
   "files": {
     "fixes.js": {
       "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/master/fixes.js",
-      "version": "1.4.0"
+      "version": "1.4.2"
     },
     "fixes.css": {
       "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/master/fixes.css",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     "index.html": {
       "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/master/index.html",
-      "version": "1.2.0"
+      "version": "1.2.2"
     },
     "regex.json": {
       "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/master/regex.json?v=1.6.0",
