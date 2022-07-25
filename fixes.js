@@ -1,5 +1,43 @@
 /* Touches fix */
 
+/**
+ * @param {Record<string, { title: string, messages: string[] }>} texts
+ * @param {{ url: string, text: string }} link
+ */
+async function sendPopup(texts, link) {
+  const languagesInitialized = new Promise(resolve => {
+    const interval = setInterval(() => {
+      if (window.Config && window.Config.language) {
+        clearInterval(interval);
+        resolve();
+      }
+    }, 1000);
+  });
+
+  const lindoLogoLoaded = new Promise(resolve => {
+    const lindoLogo = new Image();
+    lindoLogo.addEventListener('load', resolve);
+    lindoLogo.src = "https://lindo-app.com/icon.png";
+  });
+
+  await Promise.all([
+    languagesInitialized,
+    lindoLogoLoaded
+  ]);
+
+  const translatedTexts = texts[window.Config.language] || texts['en'] || texts[Object.keys(texts)[0]];
+
+  window.gui.openSimplePopup(`
+    <div>
+      ${translatedTexts.messages.join('<br />')}<br />
+      <a target="_blank" href="${link.url}" style="text-align: center; font-size: 1.2em; display: inline-block; width: 100%; margin-top: 0.4em; text-decoration: none;">
+        <img src="https://lindo-app.com/icon.png" style="height: 1.2em; display: inline-block; vertical-align: middle;"/>
+        <span style="vertical-align: middle;">${link.text}</span>
+      </a>
+    </div>
+  `, translatedTexts.title);
+}
+
 var events = {
   "mousedown": "touchstart",
   "mouseup": "touchend",
@@ -64,45 +102,6 @@ try {
 /* Popups */
 
 (function () {
-
-  /**
-   * @param {Record<string, { title: string, messages: string[] }>} texts
-   * @param {{ url: string, text: string }} link
-   */
-  async function sendPopup(texts, link) {
-    const languagesInitialized = new Promise(resolve => {
-      const interval = setInterval(() => {
-        if (window.Config && window.Config.language) {
-          clearInterval(interval);
-          resolve();
-        }
-      }, 1000);
-    });
-
-    const lindoLogoLoaded = new Promise(resolve => {
-      const lindoLogo = new Image();
-      lindoLogo.addEventListener('load', resolve);
-      lindoLogo.src = "https://lindo-app.com/icon.png";
-    });
-
-    await Promise.all([
-      languagesInitialized,
-      lindoLogoLoaded
-    ]);
-
-    const translatedTexts = texts[window.Config.language] || texts['en'] || texts[Object.keys(texts)[0]];
-
-    window.gui.openSimplePopup(`
-      <div>
-        ${translatedTexts.messages.join('<br />')}<br />
-        <a target="_blank" href="${link.url}" style="text-align: center; font-size: 1.2em; display: inline-block; width: 100%; margin-top: 0.4em; text-decoration: none;">
-          <img src="https://lindo-app.com/icon.png" style="height: 1.2em; display: inline-block; vertical-align: middle;"/>
-          <span style="vertical-align: middle;">${link.text}</span>
-        </a>
-      </div>
-    `, translatedTexts.title);
-  }
-
   // New website notification
   if (!window.top.lindoVersion) { // Lindo <= 2.5.2 does not have lindoVersion
     const lastAsked = window.localStorage.getItem('lindo-update-popup');
