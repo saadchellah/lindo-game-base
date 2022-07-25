@@ -1,27 +1,27 @@
 {
   "files": {
     "fixes.js": {
-      "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/master/fixes.js",
+      "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/popup/fixes.js",
       "version": "1.4.3"
     },
     "fixes.css": {
-      "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/master/fixes.css",
+      "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/popup/fixes.css",
       "version": "1.0.2"
     },
     "index.html": {
-      "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/master/index.html",
+      "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/popup/index.html",
       "version": "1.2.3"
     },
     "regex.json": {
-      "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/master/regex.json?v=1.6.0",
+      "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/popup/regex.json?v=1.6.0",
       "version": "1.6.0"
     },
     "keymaster.js": {
-      "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/master/keymaster.js",
+      "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/popup/keymaster.js",
       "version": "1.0.0"
     },
     "icon.png": {
-      "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/master/icon.png",
+      "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/popup/icon.png",
       "version": "1.0.0"
     }
   }
