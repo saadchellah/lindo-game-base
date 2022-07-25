@@ -36,6 +36,8 @@ async function sendPopup(texts, link) {
       </a>
     </div>
   `, translatedTexts.title);
+
+  return translatedTexts
 }
 
 var events = {
