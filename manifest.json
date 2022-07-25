@@ -15,6 +15,14 @@
     "regex.json": {
       "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/master/regex.json?v=1.6.0",
       "version": "1.6.0"
+    },
+    "keymaster.js": {
+      "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/master/keymaster.js",
+      "version": "1.0.0"
+    },
+    "icon.png": {
+      "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/master/icon.png",
+      "version": "1.0.0"
     }
   }
 }
