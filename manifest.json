@@ -17,12 +17,8 @@
       "version": "1.6.0"
     },
     "keymaster2.js": {
-      "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/popup/keymaster2.js",
+      "filename": "https://raw.githubusercontent.com/saadchellah/lindo-game-base/refs/heads/popup/keymaster2.js",
       "version": "1.0.1"
     },
-    "icon.png": {
-      "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/popup/icon.png",
-      "version": "1.0.0"
-    }
   }
 }
