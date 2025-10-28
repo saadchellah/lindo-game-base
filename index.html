@@ -18,6 +18,37 @@
             client: "android"
         };
 
+        // 🔥 NEW: Device spoofing BEFORE game loads
+        (function() {
+            // Generate or retrieve UUID
+            function getOrCreateUUID() {
+                var uuid = localStorage.getItem('lindo_device_uuid');
+                if (!uuid) {
+                    uuid = 'xxxxxxxxxxxxxxxx'.replace(/x/g, function() {
+                        return Math.floor(Math.random() * 16).toString(16);
+                    });
+                    localStorage.setItem('lindo_device_uuid', uuid);
+                }
+                return uuid;
+            }
+
+            var deviceUUID = getOrCreateUUID();
+
+            // Inject Cordova device plugin
+            window.device = {
+                cordova: '13.0.0',
+                model: 'SM-G998U',
+                platform: 'Android',
+                uuid: deviceUUID,
+                version: '15',
+                manufacturer: 'samsung',
+                isVirtual: false,
+                serial: 'unknown'
+            };
+
+            console.log('[Lindo] Device info injected in index.html:', window.device);
+        })();
+
         window.indexedDB = {};
         window.IDBDatabase = {};
         window.IDBTransaction = {};
@@ -44,6 +75,17 @@
                     onDeviceReady: function() {},
                     setUserId: function() {},
                     registerDevice: function() {}
+                },
+                // 🔥 NEW: Add SIM plugin
+                sim: {
+                    getSimInfo: function(success, error) {
+                        success({
+                            carrierName: 'unknown',
+                            countryCode: '',
+                            mcc: '',
+                            mnc: ''
+                        });
+                    }
                 }
             }
         };
