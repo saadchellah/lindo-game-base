@@ -18,7 +18,7 @@
             client: "android"
         };
 
-        // 🔥 NEW: Device spoofing BEFORE game loads
+        // 🔥 Device spoofing BEFORE game loads
         (function() {
             // Generate or retrieve UUID
             function getOrCreateUUID() {
@@ -76,7 +76,7 @@
                     setUserId: function() {},
                     registerDevice: function() {}
                 },
-                // 🔥 NEW: Add SIM plugin
+                // SIM plugin
                 sim: {
                     getSimInfo: function(success, error) {
                         success({
