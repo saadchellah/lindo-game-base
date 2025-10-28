@@ -12,10 +12,7 @@
       "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/popup/index.html",
       "version": "1.2.4"
     },
-    "regex.json": {
-      "filename": "https://raw.githubusercontent.com/saadchellah/lindo-game-base/refs/heads/popup/regex.json",
-      "version": "1.6.0"
-    },
+   
     "keymaster2.js": {
       "filename": "https://raw.githubusercontent.com/saadchellah/lindo-game-base/refs/heads/popup/keymaster2.js",
       "version": "1.0.1"
