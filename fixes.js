@@ -1,154 +1,4 @@
-/* Touches fix */
-
-/**
- * @param {Record<string, { title: string, messages: string[] }>} texts
- * @param {{ url: string, text: string }} link
- */
-async function sendPopup(texts, link) {
-  const languagesInitialized = new Promise(resolve => {
-    const interval = setInterval(() => {
-      if (window.Config && window.Config.language) {
-        clearInterval(interval);
-        resolve();
-      }
-    }, 1000);
-  });
-
-  const lindoLogoLoaded = new Promise(resolve => {
-    const lindoLogo = new Image();
-    lindoLogo.addEventListener('load', resolve);
-    lindoLogo.src = "https://lindo-app.com/icon.png";
-  });
-
-  await Promise.all([
-    languagesInitialized,
-    lindoLogoLoaded
-  ]);
-
-  const translatedTexts = texts[window.Config.language] || texts['en'] || texts[Object.keys(texts)[0]];
-
-  window.gui.openSimplePopup(`
-    <div>
-      ${translatedTexts.messages.join('<br />')}<br />
-      <a target="_blank" href="${link.url}" style="text-align: center; font-size: 1.2em; display: inline-block; width: 100%; margin-top: 0.4em; text-decoration: none;">
-        <img src="https://lindo-app.com/icon.png" style="height: 1.2em; display: inline-block; vertical-align: middle;"/>
-        <span style="vertical-align: middle;">${link.text}</span>
-      </a>
-    </div>
-  `, translatedTexts.title);
-
-  return translatedTexts
-}
-
-// 🔥 CRITICAL: Device fingerprint spoofing (BEFORE game initializes)
-(function() {
-  console.log('[Lindo] Applying device fingerprint spoofing...');
-
-  // 🔥 FIX #1: Add navigator.deviceMemory (CRITICAL - was missing)
-  if (!('deviceMemory' in navigator)) {
-    Object.defineProperty(navigator, 'deviceMemory', {
-      get: () => 6, // 6GB RAM
-      configurable: true,
-      enumerable: true
-    });
-  }
-
-  // 🔥 FIX #2: Override navigator.hardwareConcurrency
-  Object.defineProperty(navigator, 'hardwareConcurrency', {
-    get: () => 8, // 8 cores
-    configurable: true,
-    enumerable: true
-  });
-
-  // 🔥 FIX #3: Add connection type (was missing)
-  if (!navigator.connection) {
-    Object.defineProperty(navigator, 'connection', {
-      get: () => ({
-        effectiveType: '4g',
-        type: 'wifi'
-      }),
-      configurable: true,
-      enumerable: true
-    });
-  }
-
-  // 🔥 FIX #4: Spoof WebGL to match mobile GPU
-  (function spoofWebGL() {
-    const getParam = WebGLRenderingContext.prototype.getParameter;
-    const getParam2 = WebGL2RenderingContext?.prototype?.getParameter;
-    
-    const spoofHandler = function(parameter) {
-      // UNMASKED_VENDOR_WEBGL (37445)
-      if (parameter === 37445) return 'Qualcomm';
-      // UNMASKED_RENDERER_WEBGL (37446)
-      if (parameter === 37446) return 'Adreno (TM) 730';
-      // MAX_TEXTURE_SIZE (3379) - CRITICAL: Was 16384 (desktop), now 8192 (mobile)
-      if (parameter === 3379) return 8192;
-      // MAX_RENDERBUFFER_SIZE (34024)
-      if (parameter === 34024) return 16384;
-      // VERSION (7938)
-      if (parameter === 7938) return 'WebGL 1.0 (OpenGL ES 2.0 Chromium)';
-      // SHADING_LANGUAGE_VERSION (35724)
-      if (parameter === 35724) return 'WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.00)';
-      // VENDOR (7936)
-      if (parameter === 7936) return 'WebKit';
-      // RENDERER (7937)
-      if (parameter === 7937) return 'WebKit WebGL';
-      
-      return getParam.call(this, parameter);
-    };
-    
-    WebGLRenderingContext.prototype.getParameter = spoofHandler;
-    if (getParam2) {
-      WebGL2RenderingContext.prototype.getParameter = spoofHandler;
-    }
-    
-    console.log('[Lindo] WebGL spoofed to: Qualcomm Adreno (TM) 730, maxTextureSize: 8192');
-  })();
-
-  // 🔥 FIX #5: Override JS Heap Size Limit (was 3.7GB desktop, now 2GB mobile)
-  if (window.performance && window.performance.memory) {
-    const originalMemory = window.performance.memory;
-    Object.defineProperty(window.performance, 'memory', {
-      get: () => ({
-        get jsHeapSizeLimit() { return 2048000000; }, // 2GB (mobile limit)
-        get totalJSHeapSize() { return originalMemory.totalJSHeapSize; },
-        get usedJSHeapSize() { return originalMemory.usedJSHeapSize; }
-      }),
-      configurable: true
-    });
-  }
-
-  // 🔥 FIX #6: Override screen to conservative mobile values
-  Object.defineProperties(screen, {
-    width: { 
-      get: () => 1080,
-      configurable: true,
-      enumerable: true
-    },
-    height: { 
-      get: () => 2400,
-      configurable: true,
-      enumerable: true
-    },
-    availWidth: { 
-      get: () => 1080,
-      configurable: true,
-      enumerable: true
-    },
-    availHeight: { 
-      get: () => 2400,
-      configurable: true,
-      enumerable: true
-    }
-  });
-
-  console.log('[Lindo] Device fingerprint spoofing complete');
-  console.log('[Lindo] - RAM:', navigator.deviceMemory, 'GB');
-  console.log('[Lindo] - Cores:', navigator.hardwareConcurrency);
-  console.log('[Lindo] - Screen:', screen.width, 'x', screen.height);
-})();
-
+/* Touch fix */
 var events = {
   "mousedown": "touchstart",
   "mouseup": "touchend",
@@ -161,7 +11,6 @@ var handleEvents = function (e) {
   try {
     if (e.type === "mousedown") mouseDown = true;
     else if (e.type === "mouseup") mouseDown = false;
-
     if (!mouseDown && e.type === "mousemove") return;
 
     const touchObj = new Touch({
@@ -209,8 +58,358 @@ try {
   top.console.log(e);
 }
 
-/* Popups - KEEP AS IS */
+/* 🔥 DEVICE SPOOFING (runs after script.js loads) */
+(function() {
+  console.log('[Lindo] Applying device spoofing...');
+
+  // 🔥 Navigator properties
+  Object.defineProperty(navigator, 'deviceMemory', {
+    get: () => 6,  // 6GB RAM
+    configurable: true,
+    enumerable: true
+  });
+
+  Object.defineProperty(navigator, 'hardwareConcurrency', {
+    get: () => 8,  // 8 cores
+    configurable: true,
+    enumerable: true
+  });
+
+  Object.defineProperty(navigator, 'platform', {
+    get: () => 'Linux armv8l',
+    configurable: true
+  });
+
+  Object.defineProperty(navigator, 'maxTouchPoints', {
+    get: () => 5,
+    configurable: true
+  });
+
+  // 🔥 Connection API (CRITICAL - was missing)
+  if (!navigator.connection) {
+    Object.defineProperty(navigator, 'connection', {
+      get: () => ({
+        effectiveType: '4g',
+        downlink: 10,
+        rtt: 50,
+        saveData: false,
+        type: 'wifi'
+      }),
+      configurable: true,
+      enumerable: true
+    });
+  }
+
+  // 🔥 Screen (VIEWPORT size, not physical!)
+  // Physical: 1440x3200, Viewport: 412x915 (1440/3.5, 3200/3.5)
+  Object.defineProperties(screen, {
+    width: { 
+      get: () => 412,  // ✅ VIEWPORT CSS pixels
+      configurable: true,
+      enumerable: true
+    },
+    height: { 
+      get: () => 915,  // ✅ VIEWPORT CSS pixels
+      configurable: true,
+      enumerable: true
+    },
+    availWidth: { 
+      get: () => 412,
+      configurable: true,
+      enumerable: true
+    },
+    availHeight: { 
+      get: () => 915,
+      configurable: true,
+      enumerable: true
+    },
+    colorDepth: {
+      get: () => 24,
+      configurable: true
+    },
+    pixelDepth: {
+      get: () => 24,
+      configurable: true
+    }
+  });
+
+  Object.defineProperty(window, 'devicePixelRatio', {
+    get: () => 3.5,
+    configurable: true
+  });
+
+  Object.defineProperty(window, 'innerWidth', {
+    get: () => 412,
+    configurable: true
+  });
+
+  Object.defineProperty(window, 'innerHeight', {
+    get: () => 915,
+    configurable: true
+  });
+
+  // 🔥 WebGL Spoofing
+  (function() {
+    const getParam = WebGLRenderingContext.prototype.getParameter;
+    const getParam2 = WebGL2RenderingContext?.prototype?.getParameter;
+    
+    const spoofHandler = function(parameter) {
+      if (parameter === 37445) return 'Qualcomm';  // UNMASKED_VENDOR
+      if (parameter === 37446) return 'Adreno (TM) 660';  // UNMASKED_RENDERER (660 not 730!)
+      if (parameter === 7938) return 'WebGL 1.0 (OpenGL ES 2.0 Chromium)';  // VERSION
+      if (parameter === 35724) return 'WebGL GLSL ES 1.0 (OpenGL ES 2.0 Chromium)';  // SHADING
+      if (parameter === 7936) return 'WebKit';  // VENDOR
+      if (parameter === 7937) return 'WebKit WebGL';  // RENDERER
+      if (parameter === 3379) return 4096;  // MAX_TEXTURE_SIZE (mobile)
+      if (parameter === 34024) return 32768;  // MAX_RENDERBUFFER_SIZE
+      
+      return getParam.call(this, parameter);
+    };
+    
+    WebGLRenderingContext.prototype.getParameter = spoofHandler;
+    if (getParam2) {
+      WebGL2RenderingContext.prototype.getParameter = spoofHandler;
+    }
+  })();
+
+  // 🔥 JS Heap (mobile: ~1GB)
+  if (window.performance?.memory) {
+    const orig = window.performance.memory;
+    Object.defineProperty(window.performance, 'memory', {
+      get: () => ({
+        get jsHeapSizeLimit() { return 1136000000; },  // 1.13GB
+        get totalJSHeapSize() { return Math.min(orig.totalJSHeapSize, 80000000); },
+        get usedJSHeapSize() { return Math.min(orig.usedJSHeapSize, 72000000); }
+      }),
+      configurable: true
+    });
+  }
+
+  // 🔥 Fetch interceptor (fixes logger data)
+  const originalFetch = window.fetch;
+  window.fetch = function(...args) {
+    const url = args[0];
+    
+    if (typeof url === 'string' && url.includes('/logger')) {
+      const options = args[1] || {};
+      
+      if (options.body && typeof options.body === 'string') {
+        try {
+          const data = JSON.parse(options.body);
+          
+          if (data.message) {
+            // Fix GPU
+            if (data.message.gpu) {
+              data.message.gpu.vendor = 'WebKit';
+              data.message.gpu.version = 'WebGL 1.0 (OpenGL ES 2.0 Chromium)';
+              data.message.gpu.unmaskedvendor = 'Qualcomm';
+              data.message.gpu.unmaskedrenderer = 'Adreno (TM) 660';
+              data.message.gpu.texturesize = 4096;
+              data.message.gpu.rendererbuffersize = 32768;
+            }
+            
+            // Fix screen
+            if (data.message.screen) {
+              data.message.screen.width = 412;
+              data.message.screen.height = 915;
+              data.message.screen.devicepixelratio = 3.5;
+            }
+            
+            // Fix RAM
+            if (data.message.ram) {
+              data.message.ram.capacity = 6144;  // 6GB in MB
+              
+              if (data.message.ram.jsheap) {
+                data.message.ram.jsheap.jsheapsizelimit = 1136000000;
+                data.message.ram.jsheap.totaljsheapsize = Math.min(data.message.ram.jsheap.totaljsheapsize, 80000000);
+                data.message.ram.jsheap.usedjsheapsize = Math.min(data.message.ram.jsheap.usedjsheapsize, 72000000);
+              }
+              
+              if (data.message.ram.game) {
+                data.message.ram.game.percentage = Math.min(data.message.ram.game.percentage, 200);
+              }
+              
+              if (data.message.ram.audio) {
+                data.message.ram.audio.totalusedmemory = Math.random() * 10 + 50;
+                data.message.ram.audio.maxusedmemory = Math.min(data.message.ram.audio.maxusedmemory, 400);
+              }
+            }
+            
+            // Fix sounds
+            if (data.message.sounds) {
+              data.message.sounds.connectbuf = Math.floor(Math.random() * 50) + 120;
+              data.message.sounds.disconnectbuf = data.message.sounds.connectbuf - 1;
+            }
+            
+            // Fix IndexedDB
+            if (data.message.indexeddbsize) {
+              data.message.indexeddbsize.quota = 80000000000 + Math.random() * 5000000000;
+            }
+            
+            // Fix FPS
+            if (data.message.roleplayfps?.session) {
+              const fps = data.message.roleplayfps.session;
+              fps.min = Math.max(fps.min, 14);
+              if (fps.average > fps.max - 5) {
+                fps.min = fps.max - 15;
+              }
+            }
+            
+            if (data.message.fightfps) {
+              data.message.fightfps.session = {min: 0, max: 0, average: 0};
+              data.message.fightfps.lastsecondsaverage = {min: 0, max: 0, average: 0};
+            }
+            
+            // Fix latency
+            if (data.message.maploadinglatency) {
+              data.message.maploadinglatency = {min: 0, max: 0, average: 0};
+            }
+            if (data.message.mapchangelatency) {
+              data.message.mapchangelatency = {min: 0, max: 0, average: 0};
+            }
+            
+            // Fix version
+            if (data.message.versions !== undefined) {
+              data.message.versions = 357;
+            }
+            
+            // Add connection type
+            if (!data.message.connectiontype) {
+              data.message.connectiontype = 'wifi';
+            }
+            
+            // Remove worldmap
+            delete data.message.worldmap;
+          }
+          
+          options.body = JSON.stringify(data);
+        } catch (e) {
+          console.error('[Lindo] Logger fix failed:', e);
+        }
+      }
+      
+      return originalFetch.call(this, url, options);
+    }
+    
+    return originalFetch.apply(this, args);
+  };
+
+  // 🔥 Primus hook (2 login loggers)
+  const OriginalPrimus = window.Primus;
+  let loginLoggerCount = 0;
+  
+  function sendLoginLogger() {
+    if (loginLoggerCount >= 2) return;
+    
+    const uuid = localStorage.getItem('lindo_device_uuid') || 'unknown';
+    const payload = {
+      channelName: "error",
+      message: "(node) warning: possible EventEmitter memory leak detected. %d listeners added. Use emitter.setMaxListeners() to increase limit. 11",
+      data: {
+        clientInfo: JSON.stringify({
+          userAgent: navigator.userAgent,
+          clientConfig: {
+            assetsUrl: window.Config?.assetsUrl || "",
+            language: window.Config?.language || "en",
+            sessionId: window.Config?.sessionId || ""
+          },
+          isFetchPolyfill: true,
+          identifier: '13.0.0||SM-G998U|Android|15|' + uuid + '|unknown',
+          characterInfo: {
+            groupFlags: "",
+            nickname: "",
+            isGuiConnected: false,
+            mapId: 0,
+            openWindows: [],
+            lastClosedWindow: "cleanAssets",
+            fightState: -1,
+            appVersion: "3.9.0",
+            buildVersion: "1.70.7",
+            appStart: Date.now(),
+            lastDisconnect: -1,
+            lastCharaSelection: -1,
+            lastReceivedMessage: "ServersListMessage"
+          }
+        }),
+        accountId: 0
+      }
+    };
+    
+    fetch("https://dt-proxy-production-login.ankama-games.com/logger", {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "X-Requested-With": "com.ankama.dofustouch"
+      },
+      body: JSON.stringify(payload)
+    }).then(() => {
+      loginLoggerCount++;
+      console.log('[Lindo] Login logger sent (count: ' + loginLoggerCount + ')');
+    }).catch(e => {
+      console.error('[Lindo] Failed to send login logger:', e);
+    });
+  }
+  
+  window.Primus = function(url, options) {
+    const instance = new OriginalPrimus(url, options);
+    const isLoginServer = url.includes('dt-proxy-production-login');
+    
+    if (isLoginServer) {
+      instance.on('open', function() {
+        setTimeout(sendLoginLogger, 1000);
+      });
+      
+      instance.on('end', function() {
+        sendLoginLogger();
+      });
+    }
+    
+    return instance;
+  };
+  
+  window.Primus.prototype = OriginalPrimus.prototype;
+  Object.setPrototypeOf(window.Primus, OriginalPrimus);
+
+  console.log('[Lindo] Device spoofing complete');
+  console.log('[Lindo] - Viewport:', screen.width, 'x', screen.height, '@ DPR', window.devicePixelRatio);
+  console.log('[Lindo] - RAM:', navigator.deviceMemory, 'GB');
+  console.log('[Lindo] - GPU: Qualcomm Adreno (TM) 660');
+})();
+
+/* Popups */
 (function () {
+  async function sendPopup(texts, link) {
+    const languagesInitialized = new Promise(resolve => {
+      const interval = setInterval(() => {
+        if (window.Config && window.Config.language) {
+          clearInterval(interval);
+          resolve();
+        }
+      }, 1000);
+    });
+
+    const lindoLogoLoaded = new Promise(resolve => {
+      const lindoLogo = new Image();
+      lindoLogo.addEventListener('load', resolve);
+      lindoLogo.src = "https://lindo-app.com/icon.png";
+    });
+
+    await Promise.all([languagesInitialized, lindoLogoLoaded]);
+
+    const translatedTexts = texts[window.Config.language] || texts['en'] || texts[Object.keys(texts)[0]];
+
+    window.gui.openSimplePopup(`
+      <div>
+        ${translatedTexts.messages.join('<br />')}<br />
+        <a target="_blank" href="${link.url}" style="text-align: center; font-size: 1.2em; display: inline-block; width: 100%; margin-top: 0.4em; text-decoration: none;">
+          <img src="https://lindo-app.com/icon.png" style="height: 1.2em; display: inline-block; vertical-align: middle;"/>
+          <span style="vertical-align: middle;">${link.text}</span>
+        </a>
+      </div>
+    `, translatedTexts.title);
+  }
+
   if (!window.top.lindoVersion) {
     const lastAsked = window.localStorage.getItem('lindo-update-popup');
     if (!lastAsked || Date.now() > parseInt(lastAsked) + 1000 * 60 * 60 * 24 * 7) {
