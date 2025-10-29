@@ -1,6 +1,52 @@
 <!DOCTYPE HTML>
 <html lang="fr">
     <head>
+        <!-- 🔥 CRITICAL: HARDWARE SPOOFING MUST BE VERY FIRST! -->
+        <script>
+        console.log('[Lindo] Loading CRITICAL hardware spoofing...');
+        
+        // ✅ CRITICAL FIX: Set deviceMemory FIRST for ram.capacity
+        Object.defineProperty(navigator, 'deviceMemory', {
+            get: () => 10,  // 10GB to match real SM-G998U
+            configurable: true,
+            enumerable: true
+        });
+
+        // ✅ CRITICAL: Set connection type for performance reports
+        Object.defineProperty(navigator, 'connection', {
+            get: () => ({
+                type: 'wifi',
+                effectiveType: '4g',
+                downlink: 10,
+                rtt: 50,
+                saveData: false,
+                onchange: null
+            }),
+            configurable: true,
+            enumerable: true
+        });
+
+        // ✅ CRITICAL: Set other hardware properties
+        Object.defineProperty(navigator, 'hardwareConcurrency', {
+            get: () => 8,  // 8 CPU cores
+            configurable: true,
+            enumerable: true
+        });
+
+        Object.defineProperty(navigator, 'platform', {
+            get: () => 'Linux armv8l',
+            configurable: true
+        });
+
+        Object.defineProperty(navigator, 'maxTouchPoints', {
+            get: () => 5,
+            configurable: true
+        });
+
+        console.log('[Lindo] Critical hardware spoofing complete');
+        </script>
+
+        <!-- Rest of your existing head content -->
         <script>
         // Touch fix
         window.ontouchstart = function(e) {};
@@ -18,7 +64,7 @@
             client: "android"
         };
 
-        // 🔥 CRITICAL: GPU SPOOFING MUST RUN BEFORE GAME LOADS
+        // 🔥 GPU SPOOFING (also critical but can run after hardware)
         (function() {
             console.log('[Lindo] Spoofing GPU (before game loads)...');
             
@@ -27,8 +73,8 @@
             
             const spoofHandler = function(parameter) {
               // GPU identity
-              if (parameter === 37445) return 'Qualcomm';              // UNMASKED_VENDOR_WEBGL
-              if (parameter === 37446) return 'Adreno (TM) 660';       // UNMASKED_RENDERER_WEBGL
+              if (parameter === 37445) return 'Qualcomm';
+              if (parameter === 37446) return 'Adreno (TM) 660';
               
               // WebGL version strings
               if (parameter === 7938) return 'WebGL 1.0 (OpenGL ES 2.0 Chromium)';
