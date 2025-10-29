@@ -98,28 +98,28 @@ try {
     });
   }
 
-  // Screen - Viewport dimensions (CSS pixels, not physical)
+  // Screen - Viewport dimensions (LANDSCAPE orientation)
   Object.defineProperties(screen, {
-    width: { get: () => 412, configurable: true, enumerable: true },
-    height: { get: () => 915, configurable: true, enumerable: true },
-    availWidth: { get: () => 412, configurable: true, enumerable: true },
-    availHeight: { get: () => 915, configurable: true, enumerable: true },
+    width: { get: () => 854, configurable: true, enumerable: true },    // Landscape width
+    height: { get: () => 384, configurable: true, enumerable: true },   // Landscape height
+    availWidth: { get: () => 854, configurable: true, enumerable: true },
+    availHeight: { get: () => 384, configurable: true, enumerable: true },
     colorDepth: { get: () => 24, configurable: true },
     pixelDepth: { get: () => 24, configurable: true }
   });
 
   Object.defineProperty(window, 'devicePixelRatio', {
-    get: () => 3.5,
+    get: () => 2.8125,  // Match real device
     configurable: true
   });
 
   Object.defineProperty(window, 'innerWidth', {
-    get: () => 412,
+    get: () => 854,
     configurable: true
   });
 
   Object.defineProperty(window, 'innerHeight', {
-    get: () => 915,
+    get: () => 384,
     configurable: true
   });
 
@@ -135,8 +135,8 @@ try {
       if (parameter === 35724) return 'WebGL GLSL ES 1.0 (OpenGL ES 2.0 Chromium)';
       if (parameter === 7936) return 'WebKit';
       if (parameter === 7937) return 'WebKit WebGL';
-      if (parameter === 3379) return 4096;   // MAX_TEXTURE_SIZE
-      if (parameter === 34024) return 32768; // MAX_RENDERBUFFER_SIZE
+      if (parameter === 3379) return 8192;   // MAX_TEXTURE_SIZE (real device: 8192)
+      if (parameter === 34024) return 16384; // MAX_RENDERBUFFER_SIZE (real device: 16384)
       
       return getParam.call(this, parameter);
     };
@@ -161,6 +161,9 @@ try {
   }
 
   console.log('[Lindo] Hardware spoofing complete');
+  console.log('[Lindo] - Screen: 854x384 @ DPR 2.8125 (landscape)');
+  console.log('[Lindo] - RAM: 6GB (~10.8GB reported), Cores: 8');
+  console.log('[Lindo] - GPU: Adreno 660, Texture: 8192, Buffer: 16384');
 })();
 
 /* ========================================
@@ -182,20 +185,20 @@ try {
       data.message.gpu.version = 'WebGL 1.0 (OpenGL ES 2.0 Chromium)';
       data.message.gpu.unmaskedvendor = 'Qualcomm';
       data.message.gpu.unmaskedrenderer = 'Adreno (TM) 660';
-      data.message.gpu.texturesize = 4096;
-      data.message.gpu.rendererbuffersize = 32768;
+      data.message.gpu.texturesize = 8192;      // Match real device
+      data.message.gpu.rendererbuffersize = 16384;  // Match real device
     }
     
-    // Screen
+    // Screen (landscape)
     if (data.message.screen) {
-      data.message.screen.width = 412;
-      data.message.screen.height = 915;
-      data.message.screen.devicepixelratio = 3.5;
+      data.message.screen.width = 854;
+      data.message.screen.height = 384;
+      data.message.screen.devicepixelratio = 2.8125;
     }
     
-    // RAM capacity
+    // RAM capacity (in bytes, not MB!)
     if (data.message.ram) {
-      data.message.ram.capacity = 6144;  // 6GB in MB
+      data.message.ram.capacity = 10812915712;  // ~10.8GB in bytes
       
       // JS heap limits
       if (data.message.ram.jsheap) {
