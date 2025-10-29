@@ -90,13 +90,19 @@ try {
   });
 
   // Connection - Minimal (just type)
-  if (!navigator.connection) {
-    Object.defineProperty(navigator, 'connection', {
-      get: () => ({ type: 'wifi' }),
-      configurable: true,
-      enumerable: true
-    });
-  }
+ // REMOVE the conditional - ALWAYS override
+Object.defineProperty(navigator, 'connection', {
+  get: () => ({
+    type: 'wifi',
+    effectiveType: '4g',    // More realistic
+    downlink: 10,           // Mbps
+    rtt: 50,                // ms  
+    saveData: false,
+    onchange: null
+  }),
+  configurable: true,
+  enumerable: true
+});
 
   // Screen - Viewport dimensions (LANDSCAPE orientation)
   Object.defineProperties(screen, {
