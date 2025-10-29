@@ -123,27 +123,15 @@ try {
     configurable: true
   });
 
-  // WebGL - GPU hardware
+  // WebGL - GPU hardware (already spoofed in index.html before game loads)
+  // Verify it's working
   (function() {
-    const getParam = WebGLRenderingContext.prototype.getParameter;
-    const getParam2 = WebGL2RenderingContext?.prototype?.getParameter;
-    
-    const spoofHandler = function(parameter) {
-      if (parameter === 37445) return 'Qualcomm';              // UNMASKED_VENDOR_WEBGL
-      if (parameter === 37446) return 'Adreno (TM) 660';       // UNMASKED_RENDERER_WEBGL
-      if (parameter === 7938) return 'WebGL 1.0 (OpenGL ES 2.0 Chromium)';
-      if (parameter === 35724) return 'WebGL GLSL ES 1.0 (OpenGL ES 2.0 Chromium)';
-      if (parameter === 7936) return 'WebKit';
-      if (parameter === 7937) return 'WebKit WebGL';
-      if (parameter === 3379) return 8192;   // MAX_TEXTURE_SIZE (real device: 8192)
-      if (parameter === 34024) return 16384; // MAX_RENDERBUFFER_SIZE (real device: 16384)
-      
-      return getParam.call(this, parameter);
-    };
-    
-    WebGLRenderingContext.prototype.getParameter = spoofHandler;
-    if (getParam2) {
-      WebGL2RenderingContext.prototype.getParameter = spoofHandler;
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl');
+    if (gl) {
+      const vendor = gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info').UNMASKED_VENDOR_WEBGL);
+      const renderer = gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info').UNMASKED_RENDERER_WEBGL);
+      console.log('[Lindo] GPU verification:', vendor, '-', renderer);
     }
   })();
 
@@ -163,8 +151,56 @@ try {
   console.log('[Lindo] Hardware spoofing complete');
   console.log('[Lindo] - Screen: 854x384 @ DPR 2.8125 (landscape)');
   console.log('[Lindo] - RAM: 6GB, Cores: 8');
-  console.log('[Lindo] - GPU: Adreno 660, Texture: 8192, Buffer: 16384');
-  console.log('[Lindo] Note: Game will read these spoofed values directly');
+  console.log('[Lindo] - GPU: Verified above');
+  console.log('[Lindo] Note: Game reads these spoofed values directly');
+})();
+
+/* ========================================
+   LOGGER MINIMAL FIXER
+   
+   Only fixes fields that CAN'T be spoofed via browser APIs:
+   - ram.capacity (API only returns integer GB)
+   - connectiontype (may be missing)
+   ======================================== */
+(function() {
+  console.log('[Lindo] Installing minimal logger fixer...');
+
+  const originalFetch = window.fetch;
+  window.fetch = function(...args) {
+    const url = args[0];
+    
+    if (typeof url === 'string' && url.includes('/logger')) {
+      const options = args[1] || {};
+      
+      if (options.body && typeof options.body === 'string') {
+        try {
+          const data = JSON.parse(options.body);
+          
+          if (data.message) {
+            // Fix RAM capacity (can't spoof via API - only supports integer GB)
+            if (data.message.ram && !data.message.ram.capacity) {
+              data.message.ram.capacity = 10812915712;  // ~10.8GB in bytes
+            }
+            
+            // Add connection type if missing
+            if (!data.message.connectiontype) {
+              data.message.connectiontype = 'wifi';
+            }
+          }
+          
+          options.body = JSON.stringify(data);
+        } catch (e) {
+          console.error('[Lindo] Logger fix failed:', e);
+        }
+      }
+      
+      return originalFetch.call(this, url, options);
+    }
+    
+    return originalFetch.apply(this, args);
+  };
+
+  console.log('[Lindo] Minimal logger fixer installed (RAM + connectiontype only)');
 })();
 
 /* ========================================
