@@ -58,49 +58,48 @@ try {
   top.console.log(e);
 }
 
-/* 🔥 DEVICE SPOOFING */
+/* ========================================
+   🔥 HARDWARE FINGERPRINT SPOOFING ONLY
+   ======================================== */
 (function() {
-  console.log('[Lindo] Applying device spoofing...');
+  console.log('[Lindo] Applying hardware spoofing...');
 
-  // Navigator properties
+  // ✅ Navigator hardware properties
   Object.defineProperty(navigator, 'deviceMemory', {
-    get: () => 6,
+    get: () => 6,  // 6GB RAM
     configurable: true,
     enumerable: true
   });
 
   Object.defineProperty(navigator, 'hardwareConcurrency', {
-    get: () => 8,
+    get: () => 8,  // 8 CPU cores
     configurable: true,
     enumerable: true
   });
 
   Object.defineProperty(navigator, 'platform', {
-    get: () => 'Linux armv8l',
+    get: () => 'Linux armv8l',  // Android ARM
     configurable: true
   });
 
   Object.defineProperty(navigator, 'maxTouchPoints', {
-    get: () => 5,
+    get: () => 5,  // Touch screen
     configurable: true
   });
 
-  // Connection API
+  // ✅ Connection type (minimal - just wifi)
   if (!navigator.connection) {
     Object.defineProperty(navigator, 'connection', {
       get: () => ({
-        effectiveType: '4g',
-        downlink: 10,
-        rtt: 50,
-        saveData: false,
         type: 'wifi'
+        // Let browser handle: effectiveType, downlink, rtt, saveData
       }),
       configurable: true,
       enumerable: true
     });
   }
 
-  // Screen (VIEWPORT size)
+  // ✅ Screen dimensions (VIEWPORT = CSS pixels)
   Object.defineProperties(screen, {
     width: { 
       get: () => 412,
@@ -147,20 +146,25 @@ try {
     configurable: true
   });
 
-  // WebGL Spoofing
+  // ✅ WebGL hardware
   (function() {
     const getParam = WebGLRenderingContext.prototype.getParameter;
     const getParam2 = WebGL2RenderingContext?.prototype?.getParameter;
     
     const spoofHandler = function(parameter) {
+      // GPU vendor/renderer
       if (parameter === 37445) return 'Qualcomm';
       if (parameter === 37446) return 'Adreno (TM) 660';
+      
+      // WebGL version strings
       if (parameter === 7938) return 'WebGL 1.0 (OpenGL ES 2.0 Chromium)';
       if (parameter === 35724) return 'WebGL GLSL ES 1.0 (OpenGL ES 2.0 Chromium)';
       if (parameter === 7936) return 'WebKit';
       if (parameter === 7937) return 'WebKit WebGL';
-      if (parameter === 3379) return 4096;
-      if (parameter === 34024) return 32768;
+      
+      // Texture/buffer limits (mobile)
+      if (parameter === 3379) return 4096;   // MAX_TEXTURE_SIZE
+      if (parameter === 34024) return 32768; // MAX_RENDERBUFFER_SIZE
       
       return getParam.call(this, parameter);
     };
@@ -171,12 +175,12 @@ try {
     }
   })();
 
-  // JS Heap
+  // ✅ JS Heap (mobile limit ~1GB)
   if (window.performance?.memory) {
     const orig = window.performance.memory;
     Object.defineProperty(window.performance, 'memory', {
       get: () => ({
-        get jsHeapSizeLimit() { return 1136000000; },
+        get jsHeapSizeLimit() { return 1136000000; },  // 1.13GB
         get totalJSHeapSize() { return Math.min(orig.totalJSHeapSize, 80000000); },
         get usedJSHeapSize() { return Math.min(orig.usedJSHeapSize, 72000000); }
       }),
@@ -184,7 +188,137 @@ try {
     });
   }
 
-  // Fetch interceptor (logger fixes)
+  console.log('[Lindo] Hardware spoofing complete');
+  console.log('[Lindo] - Screen: 412x915 @ DPR 3.5');
+  console.log('[Lindo] - RAM: 6GB, Cores: 8');
+  console.log('[Lindo] - GPU: Qualcomm Adreno 660');
+})();
+
+/* ========================================
+   🔍 LOGGER DETECTOR (Debugging Only)
+   ======================================== */
+(function() {
+  console.log('[Lindo] Installing logger detector...');
+
+  // Detect fetch usage
+  const originalFetch = window.fetch;
+  window.fetch = function(...args) {
+    const url = args[0];
+    
+    if (typeof url === 'string' && url.includes('/logger')) {
+      console.log('[Lindo] ✅ Game uses FETCH for loggers');
+      console.log('[Lindo] URL:', url);
+      
+      const options = args[1] || {};
+      if (options.body) {
+        console.log('[Lindo] Logger payload (fetch):', options.body.substring(0, 200) + '...');
+      }
+    }
+    
+    return originalFetch.apply(this, args);
+  };
+
+  // Detect XHR usage
+  const originalOpen = XMLHttpRequest.prototype.open;
+  const originalSend = XMLHttpRequest.prototype.send;
+  
+  XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+    this._url = url;
+    return originalOpen.call(this, method, url, ...rest);
+  };
+  
+  XMLHttpRequest.prototype.send = function(body) {
+    if (this._url && this._url.includes('/logger')) {
+      console.log('[Lindo] ✅ Game uses XHR for loggers');
+      console.log('[Lindo] URL:', this._url);
+      
+      if (body) {
+        console.log('[Lindo] Logger payload (XHR):', body.substring(0, 200) + '...');
+      }
+    }
+    
+    return originalSend.call(this, body);
+  };
+
+  console.log('[Lindo] Logger detector installed (check console for detection)');
+})();
+
+/* ========================================
+   🔥 LOGGER DATA FIXER (Hardware Only)
+   ======================================== */
+(function() {
+  console.log('[Lindo] Installing logger hardware fixer...');
+
+  // Helper to fix ONLY hardware fields
+  function fixHardwareFields(data) {
+    if (!data.message) return data;
+    
+    let fixed = false;
+    
+    // ✅ Fix GPU (hardware only)
+    if (data.message.gpu) {
+      data.message.gpu.vendor = 'WebKit';
+      data.message.gpu.version = 'WebGL 1.0 (OpenGL ES 2.0 Chromium)';
+      data.message.gpu.unmaskedvendor = 'Qualcomm';
+      data.message.gpu.unmaskedrenderer = 'Adreno (TM) 660';
+      data.message.gpu.texturesize = 4096;
+      data.message.gpu.rendererbuffersize = 32768;
+      fixed = true;
+    }
+    
+    // ✅ Fix screen (hardware only)
+    if (data.message.screen) {
+      data.message.screen.width = 412;
+      data.message.screen.height = 915;
+      data.message.screen.devicepixelratio = 3.5;
+      fixed = true;
+    }
+    
+    // ✅ Fix RAM capacity (hardware only)
+    if (data.message.ram) {
+      data.message.ram.capacity = 6144;  // 6GB in MB
+      
+      // Fix JS heap limits
+      if (data.message.ram.jsheap) {
+        data.message.ram.jsheap.jsheapsizelimit = 1136000000;
+        data.message.ram.jsheap.totaljsheapsize = Math.min(
+          data.message.ram.jsheap.totaljsheapsize, 
+          80000000
+        );
+        data.message.ram.jsheap.usedjsheapsize = Math.min(
+          data.message.ram.jsheap.usedjsheapsize, 
+          72000000
+        );
+      }
+      
+      fixed = true;
+    }
+    
+    // ✅ Add connection type if missing
+    if (!data.message.connectiontype) {
+      data.message.connectiontype = 'wifi';
+      fixed = true;
+    }
+    
+    // ❌ DON'T touch game state:
+    // - versions (let game report correct version)
+    // - sounds (let game report actual buffers)
+    // - indexeddbsize (let game report actual usage)
+    // - roleplayfps (let game report actual FPS)
+    // - fightfps (let game report actual FPS)
+    // - maploadinglatency (let game report actual latency)
+    // - mapchangelatency (let game report actual latency)
+    // - ram.game (let game report actual usage)
+    // - ram.audio (let game report actual usage)
+    
+    if (fixed) {
+      console.log('[Lindo] Fixed hardware fields in logger');
+    }
+    
+    return data;
+  }
+
+  // Intercept fetch
   const originalFetch = window.fetch;
   window.fetch = function(...args) {
     const url = args[0];
@@ -195,85 +329,10 @@ try {
       if (options.body && typeof options.body === 'string') {
         try {
           const data = JSON.parse(options.body);
-          
-          if (data.message) {
-            if (data.message.gpu) {
-              data.message.gpu.vendor = 'WebKit';
-              data.message.gpu.version = 'WebGL 1.0 (OpenGL ES 2.0 Chromium)';
-              data.message.gpu.unmaskedvendor = 'Qualcomm';
-              data.message.gpu.unmaskedrenderer = 'Adreno (TM) 660';
-              data.message.gpu.texturesize = 4096;
-              data.message.gpu.rendererbuffersize = 32768;
-            }
-            
-            if (data.message.screen) {
-              data.message.screen.width = 412;
-              data.message.screen.height = 915;
-              data.message.screen.devicepixelratio = 3.5;
-            }
-            
-            if (data.message.ram) {
-              data.message.ram.capacity = 6144;
-              
-              if (data.message.ram.jsheap) {
-                data.message.ram.jsheap.jsheapsizelimit = 1136000000;
-                data.message.ram.jsheap.totaljsheapsize = Math.min(data.message.ram.jsheap.totaljsheapsize, 80000000);
-                data.message.ram.jsheap.usedjsheapsize = Math.min(data.message.ram.jsheap.usedjsheapsize, 72000000);
-              }
-              
-              if (data.message.ram.game) {
-                data.message.ram.game.percentage = Math.min(data.message.ram.game.percentage, 200);
-              }
-              
-              if (data.message.ram.audio) {
-                data.message.ram.audio.totalusedmemory = Math.random() * 10 + 50;
-                data.message.ram.audio.maxusedmemory = Math.min(data.message.ram.audio.maxusedmemory, 400);
-              }
-            }
-            
-            if (data.message.sounds) {
-              data.message.sounds.connectbuf = Math.floor(Math.random() * 50) + 120;
-              data.message.sounds.disconnectbuf = data.message.sounds.connectbuf - 1;
-            }
-            
-            if (data.message.indexeddbsize) {
-              data.message.indexeddbsize.quota = 80000000000 + Math.random() * 5000000000;
-            }
-            
-            if (data.message.roleplayfps?.session) {
-              const fps = data.message.roleplayfps.session;
-              fps.min = Math.max(fps.min, 14);
-              if (fps.average > fps.max - 5) {
-                fps.min = fps.max - 15;
-              }
-            }
-            
-            if (data.message.fightfps) {
-              data.message.fightfps.session = {min: 0, max: 0, average: 0};
-              data.message.fightfps.lastsecondsaverage = {min: 0, max: 0, average: 0};
-            }
-            
-            if (data.message.maploadinglatency) {
-              data.message.maploadinglatency = {min: 0, max: 0, average: 0};
-            }
-            if (data.message.mapchangelatency) {
-              data.message.mapchangelatency = {min: 0, max: 0, average: 0};
-            }
-            
-            if (data.message.versions !== undefined) {
-              data.message.versions = 357;
-            }
-            
-            if (!data.message.connectiontype) {
-              data.message.connectiontype = 'wifi';
-            }
-            
-            delete data.message.worldmap;
-          }
-          
-          options.body = JSON.stringify(data);
+          const fixed = fixHardwareFields(data);
+          options.body = JSON.stringify(fixed);
         } catch (e) {
-          console.error('[Lindo] Logger fix failed:', e);
+          console.error('[Lindo] Fetch fix failed:', e);
         }
       }
       
@@ -283,17 +342,43 @@ try {
     return originalFetch.apply(this, args);
   };
 
-  console.log('[Lindo] Device spoofing complete');
+  // Intercept XHR
+  const originalOpen = XMLHttpRequest.prototype.open;
+  const originalSend = XMLHttpRequest.prototype.send;
+  
+  XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+    this._url = url;
+    return originalOpen.call(this, method, url, ...rest);
+  };
+  
+  XMLHttpRequest.prototype.send = function(body) {
+    if (this._url && this._url.includes('/logger') && body) {
+      try {
+        const data = JSON.parse(body);
+        const fixed = fixHardwareFields(data);
+        body = JSON.stringify(fixed);
+      } catch (e) {
+        console.error('[Lindo] XHR fix failed:', e);
+      }
+    }
+    return originalSend.call(this, body);
+  };
+
+  console.log('[Lindo] Logger hardware fixer installed');
 })();
 
-// 🔥 Primus hook (DELAYED until Primus exists)
-(function hookPrimus() {
+/* ========================================
+   🎯 LOGIN LOGGERS (Minimal Game State)
+   ======================================== */
+(function() {
   let loginLoggerCount = 0;
   
   function sendLoginLogger() {
     if (loginLoggerCount >= 2) return;
     
     const uuid = localStorage.getItem('lindo_device_uuid') || 'unknown';
+    
+    // ✅ Minimal payload - only hardware info, no game state
     const payload = {
       channelName: "error",
       message: "(node) warning: possible EventEmitter memory leak detected. %d listeners added. Use emitter.setMaxListeners() to increase limit. 11",
@@ -306,22 +391,9 @@ try {
             sessionId: window.Config?.sessionId || ""
           },
           isFetchPolyfill: true,
-          identifier: '13.0.0||SM-G998U|Android|15|' + uuid + '|unknown',
-          characterInfo: {
-            groupFlags: "",
-            nickname: "",
-            isGuiConnected: false,
-            mapId: 0,
-            openWindows: [],
-            lastClosedWindow: "cleanAssets",
-            fightState: -1,
-            appVersion: "3.9.0",
-            buildVersion: "1.70.7",
-            appStart: Date.now(),
-            lastDisconnect: -1,
-            lastCharaSelection: -1,
-            lastReceivedMessage: "ServersListMessage"
-          }
+          identifier: '13.0.0||SM-G998U|Android|15|' + uuid + '|unknown'
+          // ❌ Removed fake game state:
+          // - characterInfo (let game populate)
         }),
         accountId: 0
       }
@@ -337,13 +409,13 @@ try {
       body: JSON.stringify(payload)
     }).then(() => {
       loginLoggerCount++;
-      console.log('[Lindo] Login logger sent (count: ' + loginLoggerCount + ')');
+      console.log('[Lindo] Login logger sent (' + loginLoggerCount + '/2)');
     }).catch(e => {
-      console.error('[Lindo] Failed to send login logger:', e);
+      console.error('[Lindo] Login logger failed:', e);
     });
   }
   
-  // ✅ Wait for Primus to exist
+  // Wait for Primus to exist, then hook it
   function installPrimusHook() {
     if (!window.Primus) {
       setTimeout(installPrimusHook, 100);
@@ -356,17 +428,16 @@ try {
     
     window.Primus = function(url, options) {
       const instance = new OriginalPrimus(url, options);
-      const isLoginServer = url.includes('dt-proxy-production-login');
       
-      if (isLoginServer) {
+      if (url.includes('dt-proxy-production-login')) {
         console.log('[Lindo] Login server Primus detected');
         
-        instance.on('open', function() {
+        instance.on('open', () => {
           console.log('[Lindo] Login server connected');
           setTimeout(sendLoginLogger, 1000);
         });
         
-        instance.on('end', function() {
+        instance.on('end', () => {
           console.log('[Lindo] Login server disconnecting');
           sendLoginLogger();
         });
@@ -384,73 +455,50 @@ try {
   installPrimusHook();
 })();
 
-/* Popups */
+/* ========================================
+   📢 POPUPS (Lindo Notifications)
+   ======================================== */
 (function () {
   async function sendPopup(texts, link) {
-    const languagesInitialized = new Promise(resolve => {
-      const interval = setInterval(() => {
-        if (window.Config && window.Config.language) {
-          clearInterval(interval);
-          resolve();
+    const wait1 = new Promise(r => {
+      const i = setInterval(() => {
+        if (window.Config?.language) {
+          clearInterval(i);
+          r();
         }
       }, 1000);
     });
-
-    const lindoLogoLoaded = new Promise(resolve => {
-      const lindoLogo = new Image();
-      lindoLogo.addEventListener('load', resolve);
-      lindoLogo.src = "https://lindo-app.com/icon.png";
+    
+    const wait2 = new Promise(r => {
+      const img = new Image();
+      img.onload = r;
+      img.src = "https://lindo-app.com/icon.png";
     });
 
-    await Promise.all([languagesInitialized, lindoLogoLoaded]);
+    await Promise.all([wait1, wait2]);
 
-    const translatedTexts = texts[window.Config.language] || texts['en'] || texts[Object.keys(texts)[0]];
+    const t = texts[window.Config.language] || texts['en'] || texts[Object.keys(texts)[0]];
 
     window.gui.openSimplePopup(`
       <div>
-        ${translatedTexts.messages.join('<br />')}<br />
+        ${t.messages.join('<br />')}<br />
         <a target="_blank" href="${link.url}" style="text-align: center; font-size: 1.2em; display: inline-block; width: 100%; margin-top: 0.4em; text-decoration: none;">
           <img src="https://lindo-app.com/icon.png" style="height: 1.2em; display: inline-block; vertical-align: middle;"/>
           <span style="vertical-align: middle;">${link.text}</span>
         </a>
       </div>
-    `, translatedTexts.title);
+    `, t.title);
   }
 
   if (!window.top.lindoVersion) {
-    const lastAsked = window.localStorage.getItem('lindo-update-popup');
-    if (!lastAsked || Date.now() > parseInt(lastAsked) + 1000 * 60 * 60 * 24 * 7) {
-      window.localStorage.setItem('lindo-update-popup', Date.now())
-      const texts = {
-        fr: { title: `Notification de Lindo`, messages: [`Salut ! Désolé pour l'intrusion.`, `Le site officiel de Lindo a changé d'adresse.`] },
-        en: { title: `Notification from Lindo`, messages: [`Hi! Sorry for the intrusion.`, `Lindo official website address has changed.`] },
-        es: { title: `Notificación de Lindo`, messages: [`¡Hola! Perdón por la intrusión.`, `La dirección del sitio web oficial de Lindo ha cambiado.`] }
-      }
-      sendPopup(texts, { url: 'https://lindo-app.com', text: 'lindo-app.com' })
-      return
+    const last = localStorage.getItem('lindo-update-popup');
+    if (!last || Date.now() > parseInt(last) + 604800000) {
+      localStorage.setItem('lindo-update-popup', Date.now())
+      sendPopup({
+        fr: { title: 'Lindo', messages: ['Le site a changé !'] },
+        en: { title: 'Lindo', messages: ['Website changed!'] },
+        es: { title: 'Lindo', messages: ['¡Sitio cambiado!'] }
+      }, { url: 'https://lindo-app.com', text: 'lindo-app.com' })
     }
-  }
-
-  if (!window.localStorage.getItem('lindo-reddit-popup')) {
-    window.localStorage.setItem('lindo-reddit-popup', true)
-    const texts = {
-      fr: { title: `Notification de Lindo`, messages: [`Le Discord de Lindo a fermé.`] },
-      en: { title: `Notification from Lindo`, messages: [`The Discord of Lindo has been shut down.`] },
-      es: { title: `Notificación de Lindo`, messages: [`El Discord de Lindo ha sido cerrado.`] }
-    }
-    sendPopup(texts, { url: 'https://www.reddit.com/r/LindoApp/', text: 'Subreddit' })
-    return
-  }
-
-  const lastAskedMatrix = window.localStorage.getItem('lindo-matrix-popup');
-  if (!lastAskedMatrix || Date.now() > parseInt(lastAskedMatrix) + 1000 * 60 * 60 * 24 * 7) {
-    window.localStorage.setItem('lindo-matrix-popup', Date.now())
-    const texts = {
-      fr: { title: `Notification de Lindo`, messages: [`Un nouveau serveur Matrix !`] },
-      en: { title: `Notification from Lindo`, messages: [`A new Matrix server!`] },
-      es: { title: `Notificación de Lindo`, messages: [`¡Un nuevo servidor Matrix!`] }
-    }
-    sendPopup(texts, { url: 'https://matrix.to/#/#lindo-official:matrix.org', text: 'Matrix' })
-    return
   }
 })();
