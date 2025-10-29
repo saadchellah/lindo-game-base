@@ -18,16 +18,18 @@
             client: "android"
         };
 
-        // 🔥 Device spoofing BEFORE game loads
+        // 🔥 Device UUID generation (persistent across sessions)
         (function() {
-            // Generate or retrieve UUID
             function getOrCreateUUID() {
                 var uuid = localStorage.getItem('lindo_device_uuid');
                 if (!uuid) {
-                    uuid = 'xxxxxxxxxxxxxxxx'.replace(/x/g, function() {
-                        return Math.floor(Math.random() * 16).toString(16);
+                    uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                        var r = Math.random() * 16 | 0;
+                        var v = c === 'x' ? r : (r & 0x3 | 0x8);
+                        return v.toString(16);
                     });
                     localStorage.setItem('lindo_device_uuid', uuid);
+                    console.log('[Lindo] Generated new device UUID:', uuid);
                 }
                 return uuid;
             }
@@ -46,15 +48,17 @@
                 serial: 'unknown'
             };
 
-            console.log('[Lindo] Device info injected in index.html:', window.device);
+            console.log('[Lindo] Device info injected:', window.device.model, window.device.uuid);
         })();
 
+        // Fake IndexedDB (not used by game)
         window.indexedDB = {};
         window.IDBDatabase = {};
         window.IDBTransaction = {};
         window.IDBCursor = {};
         window.IDBKeyRange = {};
 
+        // Cordova plugins
         window.cordova = {
             plugins: {
                 isemulator: {
@@ -76,7 +80,6 @@
                     setUserId: function() {},
                     registerDevice: function() {}
                 },
-                // SIM plugin
                 sim: {
                     getSimInfo: function(success, error) {
                         success({
@@ -90,6 +93,7 @@
             }
         };
         
+        // macOS requestAnimationFrame fix
         if (window.top.platform == "darwin") {
             (function() {
                 window.requestAnimationFrame = function(callback) {
@@ -111,6 +115,7 @@
             })();
         }
 
+        // Game initialization
         window.initDofus = function(cb) {
             var head = document.getElementsByTagName('head')[0];
 
