@@ -1,8 +1,8 @@
 {
   "files": {
     "fixes.js": {
-      "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/popup/fixes.js",
-      "version": "1.4.5"
+      "filename": "https://raw.githubusercontent.com/saadchellah/lindo-game-base/refs/heads/popup/fixes.js",
+      "version": "1.4.6"
     },
     "fixes.css": {
       "filename": "https://raw.githubusercontent.com/zenoxs/lindo-game-base/popup/fixes.css",
