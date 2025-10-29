@@ -162,91 +162,9 @@ try {
 
   console.log('[Lindo] Hardware spoofing complete');
   console.log('[Lindo] - Screen: 854x384 @ DPR 2.8125 (landscape)');
-  console.log('[Lindo] - RAM: 6GB (~10.8GB reported), Cores: 8');
+  console.log('[Lindo] - RAM: 6GB, Cores: 8');
   console.log('[Lindo] - GPU: Adreno 660, Texture: 8192, Buffer: 16384');
-})();
-
-/* ========================================
-   LOGGER HARDWARE FIXER
-   
-   Game sends loggers naturally.
-   We intercept and fix ONLY hardware fields.
-   ======================================== */
-(function() {
-  console.log('[Lindo] Installing logger hardware fixer...');
-
-  // Fix hardware fields in logger data
-  function fixHardwareFields(data) {
-    if (!data.message) return data;
-    
-    // GPU
-    if (data.message.gpu) {
-      data.message.gpu.vendor = 'WebKit';
-      data.message.gpu.version = 'WebGL 1.0 (OpenGL ES 2.0 Chromium)';
-      data.message.gpu.unmaskedvendor = 'Qualcomm';
-      data.message.gpu.unmaskedrenderer = 'Adreno (TM) 660';
-      data.message.gpu.texturesize = 8192;      // Match real device
-      data.message.gpu.rendererbuffersize = 16384;  // Match real device
-    }
-    
-    // Screen (landscape)
-    if (data.message.screen) {
-      data.message.screen.width = 854;
-      data.message.screen.height = 384;
-      data.message.screen.devicepixelratio = 2.8125;
-    }
-    
-    // RAM capacity (in bytes, not MB!)
-    if (data.message.ram) {
-      data.message.ram.capacity = 10812915712;  // ~10.8GB in bytes
-      
-      // JS heap limits
-      if (data.message.ram.jsheap) {
-        data.message.ram.jsheap.jsheapsizelimit = 1136000000;
-        data.message.ram.jsheap.totaljsheapsize = Math.min(
-          data.message.ram.jsheap.totaljsheapsize, 
-          80000000
-        );
-        data.message.ram.jsheap.usedjsheapsize = Math.min(
-          data.message.ram.jsheap.usedjsheapsize, 
-          72000000
-        );
-      }
-    }
-    
-    // Connection type
-    if (!data.message.connectiontype) {
-      data.message.connectiontype = 'wifi';
-    }
-    
-    return data;
-  }
-
-  // Intercept fetch (game uses this for loggers)
-  const originalFetch = window.fetch;
-  window.fetch = function(...args) {
-    const url = args[0];
-    
-    if (typeof url === 'string' && url.includes('/logger')) {
-      const options = args[1] || {};
-      
-      if (options.body && typeof options.body === 'string') {
-        try {
-          const data = JSON.parse(options.body);
-          const fixed = fixHardwareFields(data);
-          options.body = JSON.stringify(fixed);
-        } catch (e) {
-          console.error('[Lindo] Logger fix failed:', e);
-        }
-      }
-      
-      return originalFetch.call(this, url, options);
-    }
-    
-    return originalFetch.apply(this, args);
-  };
-
-  console.log('[Lindo] Logger hardware fixer installed');
+  console.log('[Lindo] Note: Game will read these spoofed values directly');
 })();
 
 /* ========================================
