@@ -1,13 +1,15 @@
 <!DOCTYPE HTML>
 <html lang="fr">
     <head>
-        <!-- 🔥 CRITICAL: HARDWARE SPOOFING MUST BE VERY FIRST! -->
+        <!-- 🔥 CRITICAL: HARDWARE SPOOFING MUST BE ABSOLUTE FIRST! -->
         <script>
         console.log('[Lindo] Loading CRITICAL hardware spoofing...');
         
-        // ✅ CRITICAL FIX: Set deviceMemory FIRST for ram.capacity
+        // ✅ CRITICAL: Match EXACT RAM from real device (10812915712 bytes = 10.07 GB)
+        // The game calculates: navigator.deviceMemory * 1024 * 1024 * 1024
+        // Real device: 10812915712 / (1024*1024*1024) = 10.0703125 GB
         Object.defineProperty(navigator, 'deviceMemory', {
-            get: () => 10,  // 10GB to match real SM-G998U
+            get: () => 10.0703125,  // Exact match for real SM-G998U
             configurable: true,
             enumerable: true
         });
@@ -44,6 +46,7 @@
         });
 
         console.log('[Lindo] Critical hardware spoofing complete');
+        console.log('[Lindo] - RAM capacity will be:', Math.round(10.0703125 * 1024 * 1024 * 1024), 'bytes');
         </script>
 
         <!-- Rest of your existing head content -->
