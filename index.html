@@ -1,6 +1,57 @@
 <!DOCTYPE HTML>
 <html lang="fr">
     <head>
+        <!-- 🔥 CRITICAL: HARDWARE SPOOFING MUST BE ABSOLUTE FIRST! -->
+        <script>
+        console.log('[Lindo] Loading CRITICAL hardware spoofing...');
+        
+        // ✅ CRITICAL: Match EXACT RAM from real device (10812915712 bytes = 10.07 GB)
+        // The game calculates: navigator.deviceMemory * 1024 * 1024 * 1024
+        // Real device: 10812915712 / (1024*1024*1024) = 10.0703125 GB
+        Object.defineProperty(navigator, 'deviceMemory', {
+            get: () => 10.0703125,  // Exact match for real SM-G998U
+            configurable: true,
+            enumerable: true
+        });
+
+        // ✅ CRITICAL: Set connection type for performance reports
+        Object.defineProperty(navigator, 'connection', {
+            get: () => ({
+                type: 'wifi',
+                effectiveType: '4g',
+                downlink: 10,
+                rtt: 50,
+                saveData: false,
+                onchange: null
+            }),
+            configurable: true,
+            enumerable: true
+        });
+
+        // ✅ CRITICAL: Set other hardware properties
+        Object.defineProperty(navigator, 'hardwareConcurrency', {
+            get: () => 8,  // 8 CPU cores
+            configurable: true,
+            enumerable: true
+        });
+
+        Object.defineProperty(navigator, 'platform', {
+            get: () => 'Linux armv8l',
+            configurable: true
+        });
+
+        Object.defineProperty(navigator, 'maxTouchPoints', {
+            get: () => 5,
+            configurable: true
+        });
+
+        console.log('[Lindo] Critical hardware spoofing complete');
+        console.log('[Lindo] - navigator.deviceMemory:', navigator.deviceMemory);
+        console.log('[Lindo] - RAM capacity will be:', navigator.deviceMemory ? Math.round(navigator.deviceMemory * 1024 * 1024 * 1024) : 'UNDEFINED - navigator.deviceMemory not supported!');
+        console.log('[Lindo] - "deviceMemory" in navigator:', 'deviceMemory' in navigator);
+        </script>
+
+        <!-- Rest of your existing head content -->
         <script>
         // Touch fix
         window.ontouchstart = function(e) {};
@@ -15,12 +66,46 @@
         window._ = {
             appVersion: window.appVersion,
             buildVersion: window.buildVersion,
-            client: "android"
+            client: "android",
+            // ✅ Add capacity here too in case game reads from window._
+            capacity: 10812915712
         };
 
-        // 🔥 NEW: Device spoofing BEFORE game loads
+        // 🔥 GPU SPOOFING (also critical but can run after hardware)
         (function() {
-            // Generate or retrieve UUID
+            console.log('[Lindo] Spoofing GPU (before game loads)...');
+            
+            const getParam = WebGLRenderingContext.prototype.getParameter;
+            const getParam2 = WebGL2RenderingContext?.prototype?.getParameter;
+            
+            const spoofHandler = function(parameter) {
+              // GPU identity
+              if (parameter === 37445) return 'Qualcomm';
+              if (parameter === 37446) return 'Adreno (TM) 660';
+              
+              // WebGL version strings
+              if (parameter === 7938) return 'WebGL 1.0 (OpenGL ES 2.0 Chromium)';
+              if (parameter === 35724) return 'WebGL GLSL ES 1.0 (OpenGL ES 2.0 Chromium)';
+              if (parameter === 7936) return 'WebKit';
+              if (parameter === 7937) return 'WebKit WebGL';
+              
+              // GPU capabilities
+              if (parameter === 3379) return 8192;   // MAX_TEXTURE_SIZE
+              if (parameter === 34024) return 16384; // MAX_RENDERBUFFER_SIZE
+              
+              return getParam.call(this, parameter);
+            };
+            
+            WebGLRenderingContext.prototype.getParameter = spoofHandler;
+            if (getParam2) {
+              WebGL2RenderingContext.prototype.getParameter = spoofHandler;
+            }
+            
+            console.log('[Lindo] GPU spoofed: Qualcomm Adreno 660');
+        })();
+
+        // 🔥 Device UUID (persistent)
+        (function() {
             function getOrCreateUUID() {
                 var uuid = localStorage.getItem('lindo_device_uuid');
                 if (!uuid) {
@@ -34,7 +119,7 @@
 
             var deviceUUID = getOrCreateUUID();
 
-            // Inject Cordova device plugin
+            // Inject Cordova device plugin with MEMORY INFO
             window.device = {
                 cordova: '13.0.0',
                 model: 'SM-G998U',
@@ -43,24 +128,24 @@
                 version: '15',
                 manufacturer: 'samsung',
                 isVirtual: false,
-                serial: 'unknown'
+                serial: 'unknown',
+                // ✅ Add memory capacity here too (10.07 GB)
+                capacity: 10812915712
             };
-
-            console.log('[Lindo] Device info injected in index.html:', window.device);
         })();
 
+        // Fake IndexedDB
         window.indexedDB = {};
         window.IDBDatabase = {};
         window.IDBTransaction = {};
         window.IDBCursor = {};
         window.IDBKeyRange = {};
 
+        // Cordova plugins
         window.cordova = {
             plugins: {
                 isemulator: {
-                    assess: function(fct) {
-                        fct(false);
-                    }
+                    assess: function(fct) { fct(false); }
                 },
                 Keyboard: {
                     close: function() {},
@@ -68,15 +153,12 @@
                     show: function() {},
                     hideKeyboardAccessoryBar: function() {}
                 },
-                notification: {
-                    local: false
-                },
+                notification: { local: false },
                 pushNotification: {
                     onDeviceReady: function() {},
                     setUserId: function() {},
                     registerDevice: function() {}
                 },
-                // 🔥 NEW: Add SIM plugin
                 sim: {
                     getSimInfo: function(success, error) {
                         success({
@@ -90,6 +172,7 @@
             }
         };
         
+        // macOS RAF fix
         if (window.top.platform == "darwin") {
             (function() {
                 window.requestAnimationFrame = function(callback) {
@@ -100,20 +183,18 @@
                             var queue = self.queue;
                             self.queue = [];
                             self.timeout = null;
-                            queue.forEach(function(q) {
-                                q();
-                            });
+                            queue.forEach(function(q) { q(); });
                         }, 16);
                     }
                 };
-                requestAnimationFrame.queue   = [];
+                requestAnimationFrame.queue = [];
                 requestAnimationFrame.timeout = null;
             })();
         }
 
+        // Game init
         window.initDofus = function(cb) {
             var head = document.getElementsByTagName('head')[0];
-
             var scriptScript = document.createElement('script');
             scriptScript.addEventListener('load', function() {
                 var fixesScript = document.createElement('script');
@@ -132,6 +213,5 @@
     </head>
     <body>
     </body>
-    <!-- Dependencies -->
     <script src="keymaster2.js"></script>
 </html>
