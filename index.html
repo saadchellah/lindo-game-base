@@ -18,6 +18,39 @@
             client: "android"
         };
 
+        // 🔥 CRITICAL: GPU SPOOFING MUST RUN BEFORE GAME LOADS
+        (function() {
+            console.log('[Lindo] Spoofing GPU (before game loads)...');
+            
+            const getParam = WebGLRenderingContext.prototype.getParameter;
+            const getParam2 = WebGL2RenderingContext?.prototype?.getParameter;
+            
+            const spoofHandler = function(parameter) {
+              // GPU identity
+              if (parameter === 37445) return 'Qualcomm';              // UNMASKED_VENDOR_WEBGL
+              if (parameter === 37446) return 'Adreno (TM) 660';       // UNMASKED_RENDERER_WEBGL
+              
+              // WebGL version strings
+              if (parameter === 7938) return 'WebGL 1.0 (OpenGL ES 2.0 Chromium)';
+              if (parameter === 35724) return 'WebGL GLSL ES 1.0 (OpenGL ES 2.0 Chromium)';
+              if (parameter === 7936) return 'WebKit';
+              if (parameter === 7937) return 'WebKit WebGL';
+              
+              // GPU capabilities
+              if (parameter === 3379) return 8192;   // MAX_TEXTURE_SIZE
+              if (parameter === 34024) return 16384; // MAX_RENDERBUFFER_SIZE
+              
+              return getParam.call(this, parameter);
+            };
+            
+            WebGLRenderingContext.prototype.getParameter = spoofHandler;
+            if (getParam2) {
+              WebGL2RenderingContext.prototype.getParameter = spoofHandler;
+            }
+            
+            console.log('[Lindo] GPU spoofed: Qualcomm Adreno 660');
+        })();
+
         // 🔥 Device UUID (persistent)
         (function() {
             function getOrCreateUUID() {
