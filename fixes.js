@@ -3,7 +3,7 @@
    ======================================== */
 var events = {
   "mousedown": "touchstart",
-  "mouseup": "touchend",
+  "mouseup": "touchend", 
   "mousemove": "touchmove"
 };
 
@@ -61,53 +61,15 @@ try {
 }
 
 /* ========================================
-   HARDWARE FINGERPRINT SPOOFING
+   SCREEN & PERFORMANCE SPOOFING (Non-Critical)
    ======================================== */
 (function() {
-  console.log('[Lindo] Applying hardware spoofing...');
+  console.log('[Lindo] Applying non-critical hardware spoofing...');
 
-  // Navigator - Hardware specs
-  Object.defineProperty(navigator, 'deviceMemory', {
-    get: () => 6,  // 6GB RAM
-    configurable: true,
-    enumerable: true
-  });
-
-  Object.defineProperty(navigator, 'hardwareConcurrency', {
-    get: () => 8,  // 8 CPU cores
-    configurable: true,
-    enumerable: true
-  });
-
-  Object.defineProperty(navigator, 'platform', {
-    get: () => 'Linux armv8l',  // Android ARM64
-    configurable: true
-  });
-
-  Object.defineProperty(navigator, 'maxTouchPoints', {
-    get: () => 5,  // Touch screen
-    configurable: true
-  });
-
-  // Connection - Minimal (just type)
- // REMOVE the conditional - ALWAYS override
-Object.defineProperty(navigator, 'connection', {
-  get: () => ({
-    type: 'wifi',
-    effectiveType: '4g',    // More realistic
-    downlink: 10,           // Mbps
-    rtt: 50,                // ms  
-    saveData: false,
-    onchange: null
-  }),
-  configurable: true,
-  enumerable: true
-});
-
-  // Screen - Viewport dimensions (LANDSCAPE orientation)
+  // Screen dimensions (can be set later)
   Object.defineProperties(screen, {
-    width: { get: () => 854, configurable: true, enumerable: true },    // Landscape width
-    height: { get: () => 384, configurable: true, enumerable: true },   // Landscape height
+    width: { get: () => 854, configurable: true, enumerable: true },
+    height: { get: () => 384, configurable: true, enumerable: true },
     availWidth: { get: () => 854, configurable: true, enumerable: true },
     availHeight: { get: () => 384, configurable: true, enumerable: true },
     colorDepth: { get: () => 24, configurable: true },
@@ -115,7 +77,7 @@ Object.defineProperty(navigator, 'connection', {
   });
 
   Object.defineProperty(window, 'devicePixelRatio', {
-    get: () => 2.8125,  // Match real device
+    get: () => 2.8125,
     configurable: true
   });
 
@@ -129,36 +91,23 @@ Object.defineProperty(navigator, 'connection', {
     configurable: true
   });
 
-  // WebGL - GPU hardware (already spoofed in index.html before game loads)
-  // Verify it's working
-  (function() {
-    const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl');
-    if (gl) {
-      const vendor = gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info').UNMASKED_VENDOR_WEBGL);
-      const renderer = gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info').UNMASKED_RENDERER_WEBGL);
-      console.log('[Lindo] GPU verification:', vendor, '-', renderer);
-    }
-  })();
-
-  // Performance - JS Heap limits (mobile: ~1GB)
+  // Performance - JS Heap limits (matches real phone exactly)
   if (window.performance?.memory) {
     const orig = window.performance.memory;
     Object.defineProperty(window.performance, 'memory', {
       get: () => ({
-        get jsHeapSizeLimit() { return 1136000000; },
-        get totalJSHeapSize() { return Math.min(orig.totalJSHeapSize, 80000000); },
-        get usedJSHeapSize() { return Math.min(orig.usedJSHeapSize, 72000000); }
+        get jsHeapSizeLimit() { return 1130000000; },  // 1.13GB (matches real phone)
+        get totalJSHeapSize() { return Math.min(orig.totalJSHeapSize, 76600000); },
+        get usedJSHeapSize() { return Math.min(orig.usedJSHeapSize, 72200000); }
       }),
       configurable: true
     });
   }
 
-  console.log('[Lindo] Hardware spoofing complete');
-  console.log('[Lindo] - Screen: 854x384 @ DPR 2.8125 (landscape)');
-  console.log('[Lindo] - RAM: 6GB, Cores: 8');
-  console.log('[Lindo] - GPU: Verified above');
-  console.log('[Lindo] Game will read these spoofed values and build logger naturally');
+  console.log('[Lindo] Non-critical spoofing complete');
+  console.log('[Lindo] - Screen: 854x384 @ DPR 2.8125');
+  console.log('[Lindo] - RAM: 10GB, Cores: 8');  // ✅ Updated to 10GB
+  console.log('[Lindo] - GPU: Already spoofed in index.html');
 })();
 
 /* ========================================
