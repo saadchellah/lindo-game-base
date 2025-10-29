@@ -18,18 +18,15 @@
             client: "android"
         };
 
-        // 🔥 Device UUID generation (persistent across sessions)
+        // 🔥 Device UUID (persistent)
         (function() {
             function getOrCreateUUID() {
                 var uuid = localStorage.getItem('lindo_device_uuid');
                 if (!uuid) {
-                    uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                        var r = Math.random() * 16 | 0;
-                        var v = c === 'x' ? r : (r & 0x3 | 0x8);
-                        return v.toString(16);
+                    uuid = 'xxxxxxxxxxxxxxxx'.replace(/x/g, function() {
+                        return Math.floor(Math.random() * 16).toString(16);
                     });
                     localStorage.setItem('lindo_device_uuid', uuid);
-                    console.log('[Lindo] Generated new device UUID:', uuid);
                 }
                 return uuid;
             }
@@ -47,11 +44,9 @@
                 isVirtual: false,
                 serial: 'unknown'
             };
-
-            console.log('[Lindo] Device info injected:', window.device.model, window.device.uuid);
         })();
 
-        // Fake IndexedDB (not used by game)
+        // Fake IndexedDB
         window.indexedDB = {};
         window.IDBDatabase = {};
         window.IDBTransaction = {};
@@ -62,9 +57,7 @@
         window.cordova = {
             plugins: {
                 isemulator: {
-                    assess: function(fct) {
-                        fct(false);
-                    }
+                    assess: function(fct) { fct(false); }
                 },
                 Keyboard: {
                     close: function() {},
@@ -72,9 +65,7 @@
                     show: function() {},
                     hideKeyboardAccessoryBar: function() {}
                 },
-                notification: {
-                    local: false
-                },
+                notification: { local: false },
                 pushNotification: {
                     onDeviceReady: function() {},
                     setUserId: function() {},
@@ -93,7 +84,7 @@
             }
         };
         
-        // macOS requestAnimationFrame fix
+        // macOS RAF fix
         if (window.top.platform == "darwin") {
             (function() {
                 window.requestAnimationFrame = function(callback) {
@@ -104,21 +95,18 @@
                             var queue = self.queue;
                             self.queue = [];
                             self.timeout = null;
-                            queue.forEach(function(q) {
-                                q();
-                            });
+                            queue.forEach(function(q) { q(); });
                         }, 16);
                     }
                 };
-                requestAnimationFrame.queue   = [];
+                requestAnimationFrame.queue = [];
                 requestAnimationFrame.timeout = null;
             })();
         }
 
-        // Game initialization
+        // Game init
         window.initDofus = function(cb) {
             var head = document.getElementsByTagName('head')[0];
-
             var scriptScript = document.createElement('script');
             scriptScript.addEventListener('load', function() {
                 var fixesScript = document.createElement('script');
@@ -137,6 +125,5 @@
     </head>
     <body>
     </body>
-    <!-- Dependencies -->
     <script src="keymaster2.js"></script>
 </html>
