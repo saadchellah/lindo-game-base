@@ -1,4 +1,13 @@
 /* ========================================
+   LINDO FIXES - Post-Game-Load Patches
+   
+   NOTE: All hardware spoofing now happens in index.html
+   This file only contains fixes that need the DOM/game ready
+   ======================================== */
+
+console.log('[Lindo] Loading post-game fixes...');
+
+/* ========================================
    TOUCH EVENT CONVERSION
    ======================================== */
 var events = {
@@ -56,105 +65,10 @@ try {
   for (var id in events) {
     document.body.addEventListener(id, handleEvents, true);
   }
+  console.log('[Lindo] Touch event conversion enabled');
 } catch (e) {
-  top.console.log(e);
+  top.console.log('[Lindo] Touch conversion failed:', e);
 }
 
-/* ========================================
-   SCREEN & PERFORMANCE SPOOFING (Non-Critical)
-   ======================================== */
-(function() {
-  console.log('[Lindo] Applying non-critical hardware spoofing...');
-
-  // Screen dimensions (can be set later)
-  Object.defineProperties(screen, {
-    width: { get: () => 854, configurable: true, enumerable: true },
-    height: { get: () => 384, configurable: true, enumerable: true },
-    availWidth: { get: () => 854, configurable: true, enumerable: true },
-    availHeight: { get: () => 384, configurable: true, enumerable: true },
-    colorDepth: { get: () => 24, configurable: true },
-    pixelDepth: { get: () => 24, configurable: true }
-  });
-
-  Object.defineProperty(window, 'devicePixelRatio', {
-    get: () => 2.8125,
-    configurable: true
-  });
-
-  Object.defineProperty(window, 'innerWidth', {
-    get: () => 854,
-    configurable: true
-  });
-
-  Object.defineProperty(window, 'innerHeight', {
-    get: () => 384,
-    configurable: true
-  });
-
-  // Performance - JS Heap limits (matches real phone exactly)
-  if (window.performance?.memory) {
-    const orig = window.performance.memory;
-    Object.defineProperty(window.performance, 'memory', {
-      get: () => ({
-        get jsHeapSizeLimit() { return 1130000000; },  // 1.13GB (matches real phone)
-        get totalJSHeapSize() { return Math.min(orig.totalJSHeapSize, 76600000); },
-        get usedJSHeapSize() { return Math.min(orig.usedJSHeapSize, 72200000); }
-      }),
-      configurable: true
-    });
-  }
-
-  console.log('[Lindo] Non-critical spoofing complete');
-  console.log('[Lindo] - Screen: 854x384 @ DPR 2.8125');
-  console.log('[Lindo] - RAM: 10GB, Cores: 8');  // ✅ Updated to 10GB
-  console.log('[Lindo] - GPU: Already spoofed in index.html');
-})();
-
-/* ========================================
-   LINDO POPUPS (Optional Notifications)
-   ======================================== */
-(function () {
-  async function sendPopup(texts, link) {
-    const waitConfig = new Promise(r => {
-      const i = setInterval(() => {
-        if (window.Config?.language) {
-          clearInterval(i);
-          r();
-        }
-      }, 1000);
-    });
-    
-    const waitLogo = new Promise(r => {
-      const img = new Image();
-      img.onload = r;
-      img.src = "https://lindo-app.com/icon.png";
-    });
-
-    await Promise.all([waitConfig, waitLogo]);
-
-    const t = texts[window.Config.language] || texts['en'] || texts[Object.keys(texts)[0]];
-
-    window.gui.openSimplePopup(`
-      <div>
-        ${t.messages.join('<br />')}<br />
-        <a target="_blank" href="${link.url}" style="text-align: center; font-size: 1.2em; display: inline-block; width: 100%; margin-top: 0.4em; text-decoration: none;">
-          <img src="https://lindo-app.com/icon.png" style="height: 1.2em; display: inline-block; vertical-align: middle;"/>
-          <span style="vertical-align: middle;">${link.text}</span>
-        </a>
-      </div>
-    `, t.title);
-  }
-
-  // Website change notification (once per week)
-  if (!window.top.lindoVersion) {
-    const last = localStorage.getItem('lindo-update-popup');
-    if (!last || Date.now() > parseInt(last) + 604800000) {
-      localStorage.setItem('lindo-update-popup', Date.now())
-      sendPopup({
-        fr: { title: 'Lindo', messages: ['Le site a changé !'] },
-        en: { title: 'Lindo', messages: ['Website changed!'] },
-        es: { title: 'Lindo', messages: ['¡Sitio cambiado!'] }
-      }, { url: 'https://lindo-app.com', text: 'lindo-app.com' })
-    }
-  }
-})();
+console.log('[Lindo] Post-game fixes complete');
+console.log('[Lindo] (Hardware spoofing was applied in index.html)');
