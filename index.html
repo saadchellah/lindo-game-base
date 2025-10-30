@@ -1,204 +1,6 @@
 <!DOCTYPE HTML>
 <html lang="fr">
     <head>
-        <!-- ================================================================
-             🔥 PHASE 1: CRITICAL HARDWARE SPOOFING (Must be FIRST!)
-             ================================================================ -->
-        <script>
-        console.log('[Lindo] Phase 1: Loading CRITICAL hardware spoofing...');
-        
-        // ✅ CRITICAL: Match EXACT RAM from real device (10812915712 bytes = 10.07 GB)
-        Object.defineProperty(navigator, 'deviceMemory', {
-            get: () => 10.0703125,
-            configurable: true,
-            enumerable: true
-        });
-
-        // ✅ CRITICAL: Set connection type for performance reports
-        Object.defineProperty(navigator, 'connection', {
-            get: () => ({
-                type: 'wifi',
-                effectiveType: '4g',
-                downlink: 10,
-                rtt: 50,
-                saveData: false,
-                onchange: null
-            }),
-            configurable: true,
-            enumerable: true
-        });
-
-        // ✅ CRITICAL: Set other hardware properties
-        Object.defineProperty(navigator, 'hardwareConcurrency', {
-            get: () => 12,
-            configurable: true,
-            enumerable: true
-        });
-
-        Object.defineProperty(navigator, 'platform', {
-            get: () => 'Linux armv8l',
-            configurable: true
-        });
-
-        Object.defineProperty(navigator, 'maxTouchPoints', {
-            get: () => 5,
-            configurable: true
-        });
-
-        // ✅ CRITICAL: Inject chrome.system.memory API for RAM capacity reporting
-        if (!window.chrome) {
-            window.chrome = {};
-        }
-        if (!window.chrome.system) {
-            window.chrome.system = {};
-        }
-        window.chrome.system.memory = {
-            getInfo: function(callback) {
-                // Return exact RAM capacity from real device (10812915712 bytes)
-                callback({
-                    capacity: 10812915712,
-                    availableCapacity: 10812915712 * 0.6  // ~60% available
-                });
-            }
-        };
-
-        console.log('[Lindo] Phase 1: Critical hardware spoofing complete');
-        console.log('[Lindo] - RAM capacity:', Math.round(10.0703125 * 1024 * 1024 * 1024), 'bytes');
-        console.log('[Lindo] - chrome.system.memory API injected');
-        </script>
-
-        <!-- ================================================================
-             🔥 PHASE 2: GPU SPOOFING (Before any WebGL context creation)
-             ================================================================ -->
-        <script>
-        console.log('[Lindo] Phase 2: Spoofing GPU...');
-        
-        const getParam = WebGLRenderingContext.prototype.getParameter;
-        const getParam2 = WebGL2RenderingContext?.prototype?.getParameter;
-        
-        const spoofHandler = function(parameter) {
-          // GPU identity
-          if (parameter === 37445) return 'Qualcomm';
-          if (parameter === 37446) return 'Adreno (TM) 660';
-          
-          // WebGL version strings
-          if (parameter === 7938) return 'WebGL 1.0 (OpenGL ES 2.0 Chromium)';
-          if (parameter === 35724) return 'WebGL GLSL ES 1.0 (OpenGL ES 2.0 Chromium)';
-          if (parameter === 7936) return 'WebKit';
-          if (parameter === 7937) return 'WebKit WebGL';
-          
-          // GPU capabilities
-          if (parameter === 3379) return 8192;   // MAX_TEXTURE_SIZE
-          if (parameter === 34024) return 16384; // MAX_RENDERBUFFER_SIZE
-          
-          return getParam.call(this, parameter);
-        };
-        
-        WebGLRenderingContext.prototype.getParameter = spoofHandler;
-        if (getParam2) {
-          WebGL2RenderingContext.prototype.getParameter = spoofHandler;
-        }
-        
-        console.log('[Lindo] Phase 2: GPU spoofed - Qualcomm Adreno 660');
-        </script>
-
-        <!-- ================================================================
-             🔥 PHASE 3: SCREEN & WINDOW SPOOFING (Before DOM ready)
-             ================================================================ -->
-        <script>
-        console.log('[Lindo] Phase 3: Spoofing screen & window properties...');
-
-        // Screen dimensions (Samsung Galaxy S21 Ultra landscape)
-        Object.defineProperties(screen, {
-            width: { get: () => 854, configurable: true, enumerable: true },
-            height: { get: () => 384, configurable: true, enumerable: true },
-            availWidth: { get: () => 854, configurable: true, enumerable: true },
-            availHeight: { get: () => 384, configurable: true, enumerable: true },
-            colorDepth: { get: () => 24, configurable: true },
-            pixelDepth: { get: () => 24, configurable: true }
-        });
-
-        // Device pixel ratio
-        Object.defineProperty(window, 'devicePixelRatio', {
-            get: () => 2.8125,
-            configurable: true
-        });
-
-        // Window dimensions
-        Object.defineProperty(window, 'innerWidth', {
-            get: () => 854,
-            configurable: true
-        });
-
-        Object.defineProperty(window, 'innerHeight', {
-            get: () => 384,
-            configurable: true
-        });
-
-        // Performance - JS Heap limits (matches real phone)
-        if (window.performance?.memory) {
-            const origMemory = window.performance.memory;
-            Object.defineProperty(window.performance, 'memory', {
-                get: () => ({
-                    get jsHeapSizeLimit() { return 1130000000; },  // 1.13GB
-                    get totalJSHeapSize() { 
-                        return Math.min(origMemory.totalJSHeapSize || 76600000, 76600000); 
-                    },
-                    get usedJSHeapSize() { 
-                        return Math.min(origMemory.usedJSHeapSize || 72200000, 72200000); 
-                    }
-                }),
-                configurable: true
-            });
-        }
-
-        console.log('[Lindo] Phase 3: Screen & window spoofing complete');
-        console.log('[Lindo] - Screen: 854x384 @ DPR 2.8125');
-        console.log('[Lindo] - Heap Limit: 1.13GB');
-        </script>
-
-        <!-- ================================================================
-             🔥 PHASE 4: DEVICE UUID (Persistent)
-             ================================================================ -->
-        <script>
-        console.log('[Lindo] Phase 4: Setting up device UUID...');
-
-        function getOrCreateUUID() {
-            var uuid = localStorage.getItem('lindo_device_uuid');
-            if (!uuid) {
-                // Generate 16-character hex UUID (matches real phone format: 211f1a281988e5e4)
-                uuid = 'xxxxxxxxxxxxxxxx'.replace(/x/g, function() {
-                    return Math.floor(Math.random() * 16).toString(16);
-                });
-                localStorage.setItem('lindo_device_uuid', uuid);
-                console.log('[Lindo] Generated NEW device UUID:', uuid);
-            } else {
-                console.log('[Lindo] Using EXISTING device UUID:', uuid);
-            }
-            return uuid;
-        }
-
-        var deviceUUID = getOrCreateUUID();
-
-        // Inject Cordova device plugin (matches real phone exactly)
-        window.device = {
-            cordova: '13.0.0',
-            model: 'SM-G998U',
-            platform: 'Android',
-            uuid: deviceUUID,
-            version: '15',
-            manufacturer: 'samsung',
-            isVirtual: false,
-            serial: 'unknown'
-        };
-
-        console.log('[Lindo] Phase 4: Device configured');
-        console.log('[Lindo] - Identifier will be: 13.0.0||SM-G998U|Android|15|' + deviceUUID + '|unknown');
-        </script>
-
-        <!-- ================================================================
-             PHASE 5: CORDOVA & ENVIRONMENT SETUP
-             ================================================================ -->
         <script>
         // Touch fix
         window.ontouchstart = function(e) {};
@@ -216,18 +18,18 @@
             client: "android"
         };
 
-        // Fake IndexedDB
         window.indexedDB = {};
         window.IDBDatabase = {};
         window.IDBTransaction = {};
         window.IDBCursor = {};
         window.IDBKeyRange = {};
 
-        // Cordova plugins
         window.cordova = {
             plugins: {
                 isemulator: {
-                    assess: function(fct) { fct(false); }
+                    assess: function(fct) {
+                        fct(false);
+                    }
                 },
                 Keyboard: {
                     close: function() {},
@@ -235,26 +37,17 @@
                     show: function() {},
                     hideKeyboardAccessoryBar: function() {}
                 },
-                notification: { local: false },
+                notification: {
+                    local: false
+                },
                 pushNotification: {
                     onDeviceReady: function() {},
                     setUserId: function() {},
                     registerDevice: function() {}
-                },
-                sim: {
-                    getSimInfo: function(success, error) {
-                        success({
-                            carrierName: 'unknown',
-                            countryCode: '',
-                            mcc: '',
-                            mnc: ''
-                        });
-                    }
                 }
             }
         };
         
-        // macOS RAF fix
         if (window.top.platform == "darwin") {
             (function() {
                 window.requestAnimationFrame = function(callback) {
@@ -265,21 +58,22 @@
                             var queue = self.queue;
                             self.queue = [];
                             self.timeout = null;
-                            queue.forEach(function(q) { q(); });
+                            queue.forEach(function(q) {
+                                q();
+                            });
                         }, 16);
                     }
                 };
-                requestAnimationFrame.queue = [];
+                requestAnimationFrame.queue   = [];
                 requestAnimationFrame.timeout = null;
             })();
         }
 
-        // Game init
         window.initDofus = function(cb) {
             var head = document.getElementsByTagName('head')[0];
+
             var scriptScript = document.createElement('script');
             scriptScript.addEventListener('load', function() {
-                // fixes.js can now be optional or just contain non-spoofing fixes
                 var fixesScript = document.createElement('script');
                 fixesScript.src = 'fixes.js';
                 head.appendChild(fixesScript);
@@ -288,21 +82,12 @@
             scriptScript.src = 'build/script.js';
             head.appendChild(scriptScript);
         };
-
-        console.log('[Lindo] ✅ ALL SPOOFING COMPLETE - Ready for game load');
-        console.log('[Lindo] Summary:');
-        console.log('  - Device: Samsung SM-G998U (Galaxy S21 Ultra)');
-        console.log('  - Platform: Android 15 / Linux armv8l');
-        console.log('  - RAM: 10.07 GB (12 cores)');
-        console.log('  - GPU: Qualcomm Adreno 660');
-        console.log('  - Screen: 854x384 @ 2.8125 DPR');
-        </script>
-
+        
+    </script>
         <meta charset="UTF-8">
         <link rel="stylesheet" href="build/styles-native.css" />
         <link rel="stylesheet" href="fixes.css" />
     </head>
     <body>
     </body>
-    <script src="keymaster2.js"></script>
 </html>
