@@ -277,42 +277,66 @@
             })();
         }
 
-        // ✅ CRITICAL: Spoof window property count to match real phone (370 properties)
-        // The game counts window properties as a fingerprint. We need to return exactly 370.
-        // Strategy: Hook Object.keys() to return fixed count when called on window object
+        // ✅ CRITICAL: Adjust window properties to match real phone (370 properties)
+        // Measured: Electron after game loads naturally has 290 properties
+        // We need to add 80 more to reach 370 (370 - 290 = 80)
+        // Strategy: Add authentic Android webkit properties now, game will keep them
         (function() {
-            var originalObjectKeys = Object.keys;
+            var currentCount = Object.keys(window).length;
             var targetPropertyCount = 370; // Real Samsung Galaxy S21 Ultra count
-            var actualCount = originalObjectKeys(window).length;
+            var electronAfterGameLoads = 290; // Measured: natural Electron count after login
+            var neededCount = targetPropertyCount - electronAfterGameLoads;
 
-            console.log('[Lindo] Initial window properties:', actualCount);
+            console.log('[Lindo] Initial window properties (before game):', currentCount);
             console.log('[Lindo] Target property count:', targetPropertyCount);
+            console.log('[Lindo] Electron naturally has after game loads:', electronAfterGameLoads);
+            console.log('[Lindo] We should add:', neededCount, 'properties');
 
-            // Override Object.keys to return fixed count only for window object
-            Object.keys = function(obj) {
-                var keys = originalObjectKeys(obj);
+            if (neededCount > 0) {
+                // Add authentic Android-specific webkit properties
+                var androidProps = [
+                    'webkitURL', 'webkitRTCPeerConnection', 'webkitMediaStream',
+                    'webkitSpeechGrammar', 'webkitSpeechGrammarList', 'webkitSpeechRecognition',
+                    'webkitSpeechRecognitionError', 'webkitSpeechRecognitionEvent',
+                    'WebKitAnimationEvent', 'WebKitCSSMatrix', 'WebKitMutationObserver',
+                    'WebKitTransitionEvent', 'webkitAudioContext', 'webkitAudioPannerNode',
+                    'webkitIDBCursor', 'webkitIDBDatabase', 'webkitIDBFactory',
+                    'webkitIDBIndex', 'webkitIDBKeyRange', 'webkitIDBObjectStore',
+                    'webkitIDBRequest', 'webkitIDBTransaction', 'webkitIndexedDB',
+                    'webkitStorageInfo', 'webkitRequestFileSystem', 'webkitResolveLocalFileSystemURL',
+                    'WebKitCSSFilterValue', 'WebKitCSSFilterRule', 'webkitCancelAnimationFrame',
+                    'webkitCancelRequestAnimationFrame', 'webkitRequestAnimationFrame',
+                    'WebKitMediaSource', 'WebKitSourceBuffer', 'WebKitSourceBufferList'
+                ];
 
-                // If counting window properties, spoof the count
-                if (obj === window) {
-                    var diff = targetPropertyCount - keys.length;
+                var propsAdded = 0;
 
-                    // If we need more properties, add dummy ones to the array
-                    if (diff > 0) {
-                        for (var i = 0; i < diff; i++) {
-                            keys.push('__spoofed_android_prop_' + i);
-                        }
-                    }
-                    // If we have too many, slice to exact count
-                    else if (diff < 0) {
-                        keys = keys.slice(0, targetPropertyCount);
+                // Add known Android properties first
+                for (var i = 0; i < androidProps.length && propsAdded < neededCount; i++) {
+                    if (!(androidProps[i] in window)) {
+                        window[androidProps[i]] = undefined;
+                        propsAdded++;
                     }
                 }
 
-                return keys;
-            };
+                // If still need more, add numbered dummy properties
+                while (propsAdded < neededCount) {
+                    var propName = '__android_native_' + propsAdded;
+                    if (!(propName in window)) {
+                        window[propName] = undefined;
+                        propsAdded++;
+                    } else {
+                        break; // Safety: avoid infinite loop
+                    }
+                }
 
-            console.log('[Lindo] Object.keys() hooked - will report', targetPropertyCount, 'window properties');
-            console.log('[Lindo] Actual count will vary, but reported count is fixed at', targetPropertyCount);
+                var afterAddCount = Object.keys(window).length;
+                console.log('[Lindo] Added', propsAdded, 'properties');
+                console.log('[Lindo] Current count now:', afterAddCount);
+                console.log('[Lindo] Expected after game loads:', (electronAfterGameLoads + propsAdded), '(target:', targetPropertyCount + ')');
+            } else {
+                console.log('[Lindo] Perfect! No properties needed, should already be at', targetPropertyCount);
+            }
         })();
 
         // Game init
@@ -330,6 +354,52 @@
             head.appendChild(scriptScript);
         };
 
+        // ✅ OPTION 3: Queue EventEmitter warnings to be logged after logger is ready
+        // This ensures warnings during early initialization get sent to the server
+        (function() {
+            var earlyWarnings = [];
+            var originalConsoleError = console.error;
+            var loggerReady = false;
+
+            console.log('[Lindo] Installing EventEmitter warning queue system...');
+
+            // Intercept console.error during early startup
+            console.error = function() {
+                var args = Array.prototype.slice.call(arguments);
+                var message = args[0];
+
+                // Check if this is an EventEmitter warning
+                if (typeof message === 'string' && message.indexOf('EventEmitter memory leak') !== -1) {
+                    if (!loggerReady) {
+                        // Queue it for later
+                        earlyWarnings.push(args);
+                        originalConsoleError.apply(console, args); // Still show in console
+                        console.log('[Lindo] ⏰ Queued EventEmitter warning for logger (will replay in 5s)');
+                    } else {
+                        // Logger is ready, pass through
+                        originalConsoleError.apply(console, args);
+                    }
+                } else {
+                    // Not an EventEmitter warning, pass through normally
+                    originalConsoleError.apply(console, args);
+                }
+            };
+
+            // After 5 seconds, assume logger is ready and replay warnings
+            setTimeout(function() {
+                loggerReady = true;
+                console.log('[Lindo] 🔄 Logger should be ready now, replaying', earlyWarnings.length, 'queued warnings');
+
+                // Replay queued warnings (logger's error channel should catch them now)
+                earlyWarnings.forEach(function(args) {
+                    originalConsoleError.apply(console, args);
+                });
+
+                earlyWarnings = [];
+                console.log('[Lindo] ✅ EventEmitter warnings replayed to logger');
+            }, 5000);
+        })();
+
         console.log('[Lindo] ✅ ALL SPOOFING COMPLETE - Ready for game load');
         console.log('[Lindo] Summary:');
         console.log('  - Device: Samsung SM-G998U (Galaxy S21 Ultra)');
@@ -338,7 +408,7 @@
         console.log('  - RAM: 10.07 GB (12 cores)');
         console.log('  - GPU: Qualcomm Adreno 660');
         console.log('  - Screen: 854x384 @ 2.8125 DPR');
-        console.log('  - Reported window properties: 370 (spoofed via Object.keys hook)');
+        console.log('  - Window properties: ' + Object.keys(window).length + ' (adjusted to match real phone)');
         </script>
 
         <meta charset="UTF-8">
