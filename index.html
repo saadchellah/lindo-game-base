@@ -45,8 +45,26 @@
             configurable: true
         });
 
+        // ✅ CRITICAL: Inject chrome.system.memory API for RAM capacity reporting
+        if (!window.chrome) {
+            window.chrome = {};
+        }
+        if (!window.chrome.system) {
+            window.chrome.system = {};
+        }
+        window.chrome.system.memory = {
+            getInfo: function(callback) {
+                // Return exact RAM capacity from real device (10812915712 bytes)
+                callback({
+                    capacity: 10812915712,
+                    availableCapacity: 10812915712 * 0.6  // ~60% available
+                });
+            }
+        };
+
         console.log('[Lindo] Phase 1: Critical hardware spoofing complete');
         console.log('[Lindo] - RAM capacity:', Math.round(10.0703125 * 1024 * 1024 * 1024), 'bytes');
+        console.log('[Lindo] - chrome.system.memory API injected');
         </script>
 
         <!-- ================================================================
