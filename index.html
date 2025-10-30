@@ -223,8 +223,11 @@
         window.IDBCursor = {};
         window.IDBKeyRange = {};
 
-        // Cordova plugins
+        // Cordova plugins (matching real Android Cordova environment)
         window.cordova = {
+            platformId: 'android',
+            platformVersion: '13.0.0',  // ✅ CRITICAL: Must match device.cordova version
+            version: '13.0.0',
             plugins: {
                 isemulator: {
                     assess: function(fct) { fct(false); }
@@ -274,6 +277,60 @@
             })();
         }
 
+        // ✅ CRITICAL: Pad window properties to match real phone count (370 properties)
+        // Real phone has 370, Electron typically has ~290, so we need to add ~80 dummy props
+        (function() {
+            var currentCount = Object.keys(window).length;
+            var targetCount = 370; // Match real Samsung Galaxy S21 Ultra
+            var neededCount = targetCount - currentCount;
+
+            console.log('[Lindo] Current window properties:', currentCount);
+            console.log('[Lindo] Target window properties:', targetCount);
+            console.log('[Lindo] Adding dummy properties:', neededCount);
+
+            if (neededCount > 0) {
+                // Add Android-specific webkit properties that might be missing
+                var androidProps = [
+                    'webkit', 'webkitURL', 'webkitRTCPeerConnection',
+                    'webkitMediaStream', 'webkitSpeechGrammar', 'webkitSpeechGrammarList',
+                    'webkitSpeechRecognition', 'webkitSpeechRecognitionError',
+                    'webkitSpeechRecognitionEvent', 'WebKitAnimationEvent',
+                    'WebKitCSSMatrix', 'WebKitMutationObserver', 'WebKitTransitionEvent',
+                    'webkitAudioContext', 'webkitAudioPannerNode', 'webkitConvertPointFromNodeToPage',
+                    'webkitConvertPointFromPageToNode', 'webkitIDBCursor', 'webkitIDBDatabase',
+                    'webkitIDBFactory', 'webkitIDBIndex', 'webkitIDBKeyRange',
+                    'webkitIDBObjectStore', 'webkitIDBRequest', 'webkitIDBTransaction',
+                    'webkitIndexedDB', 'webkitMediaStreamTrack', 'webkitNotifications',
+                    'webkitOfflineAudioContext', 'webkitResolveLocalFileSystemURL',
+                    'webkitRequestFileSystem', 'webkitRequestFileSystemSync',
+                    'webkitStorageInfo', 'AndroidBridge', 'AndroidInterface'
+                ];
+
+                var propsAdded = 0;
+
+                // Add known Android properties
+                for (var i = 0; i < androidProps.length && propsAdded < neededCount; i++) {
+                    if (!(androidProps[i] in window)) {
+                        window[androidProps[i]] = undefined;
+                        propsAdded++;
+                    }
+                }
+
+                // Fill remaining with numbered dummy properties if needed
+                while (propsAdded < neededCount) {
+                    var propName = '__android_prop_' + propsAdded;
+                    if (!(propName in window)) {
+                        window[propName] = undefined;
+                        propsAdded++;
+                    } else {
+                        propsAdded++;
+                    }
+                }
+
+                console.log('[Lindo] Added', propsAdded, 'properties. New count:', Object.keys(window).length);
+            }
+        })();
+
         // Game init
         window.initDofus = function(cb) {
             var head = document.getElementsByTagName('head')[0];
@@ -293,9 +350,11 @@
         console.log('[Lindo] Summary:');
         console.log('  - Device: Samsung SM-G998U (Galaxy S21 Ultra)');
         console.log('  - Platform: Android 15 / Linux armv8l');
+        console.log('  - Cordova: ' + window.cordova.platformVersion);
         console.log('  - RAM: 10.07 GB (12 cores)');
         console.log('  - GPU: Qualcomm Adreno 660');
         console.log('  - Screen: 854x384 @ 2.8125 DPR');
+        console.log('  - Window properties: ' + Object.keys(window).length + ' (target: 370)');
         </script>
 
         <meta charset="UTF-8">
