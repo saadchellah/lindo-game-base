@@ -148,17 +148,21 @@
         function getOrCreateUUID() {
             var uuid = localStorage.getItem('lindo_device_uuid');
             if (!uuid) {
+                // Generate 16-character hex UUID (matches real phone format: 211f1a281988e5e4)
                 uuid = 'xxxxxxxxxxxxxxxx'.replace(/x/g, function() {
                     return Math.floor(Math.random() * 16).toString(16);
                 });
                 localStorage.setItem('lindo_device_uuid', uuid);
+                console.log('[Lindo] Generated NEW device UUID:', uuid);
+            } else {
+                console.log('[Lindo] Using EXISTING device UUID:', uuid);
             }
             return uuid;
         }
 
         var deviceUUID = getOrCreateUUID();
 
-        // Inject Cordova device plugin
+        // Inject Cordova device plugin (matches real phone exactly)
         window.device = {
             cordova: '13.0.0',
             model: 'SM-G998U',
@@ -170,7 +174,8 @@
             serial: 'unknown'
         };
 
-        console.log('[Lindo] Phase 4: Device UUID configured -', deviceUUID);
+        console.log('[Lindo] Phase 4: Device configured');
+        console.log('[Lindo] - Identifier will be: 13.0.0||SM-G998U|Android|15|' + deviceUUID + '|unknown');
         </script>
 
         <!-- ================================================================
