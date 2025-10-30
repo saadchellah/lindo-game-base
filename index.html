@@ -277,58 +277,42 @@
             })();
         }
 
-        // ✅ CRITICAL: Pad window properties to match real phone count (370 properties)
-        // Real phone has 370, Electron typically has ~290, so we need to add ~80 dummy props
+        // ✅ CRITICAL: Spoof window property count to match real phone (370 properties)
+        // The game counts window properties as a fingerprint. We need to return exactly 370.
+        // Strategy: Hook Object.keys() to return fixed count when called on window object
         (function() {
-            var currentCount = Object.keys(window).length;
-            var targetCount = 370; // Match real Samsung Galaxy S21 Ultra
-            var neededCount = targetCount - currentCount;
+            var originalObjectKeys = Object.keys;
+            var targetPropertyCount = 370; // Real Samsung Galaxy S21 Ultra count
+            var actualCount = originalObjectKeys(window).length;
 
-            console.log('[Lindo] Current window properties:', currentCount);
-            console.log('[Lindo] Target window properties:', targetCount);
-            console.log('[Lindo] Adding dummy properties:', neededCount);
+            console.log('[Lindo] Initial window properties:', actualCount);
+            console.log('[Lindo] Target property count:', targetPropertyCount);
 
-            if (neededCount > 0) {
-                // Add Android-specific webkit properties that might be missing
-                var androidProps = [
-                    'webkit', 'webkitURL', 'webkitRTCPeerConnection',
-                    'webkitMediaStream', 'webkitSpeechGrammar', 'webkitSpeechGrammarList',
-                    'webkitSpeechRecognition', 'webkitSpeechRecognitionError',
-                    'webkitSpeechRecognitionEvent', 'WebKitAnimationEvent',
-                    'WebKitCSSMatrix', 'WebKitMutationObserver', 'WebKitTransitionEvent',
-                    'webkitAudioContext', 'webkitAudioPannerNode', 'webkitConvertPointFromNodeToPage',
-                    'webkitConvertPointFromPageToNode', 'webkitIDBCursor', 'webkitIDBDatabase',
-                    'webkitIDBFactory', 'webkitIDBIndex', 'webkitIDBKeyRange',
-                    'webkitIDBObjectStore', 'webkitIDBRequest', 'webkitIDBTransaction',
-                    'webkitIndexedDB', 'webkitMediaStreamTrack', 'webkitNotifications',
-                    'webkitOfflineAudioContext', 'webkitResolveLocalFileSystemURL',
-                    'webkitRequestFileSystem', 'webkitRequestFileSystemSync',
-                    'webkitStorageInfo', 'AndroidBridge', 'AndroidInterface'
-                ];
+            // Override Object.keys to return fixed count only for window object
+            Object.keys = function(obj) {
+                var keys = originalObjectKeys(obj);
 
-                var propsAdded = 0;
+                // If counting window properties, spoof the count
+                if (obj === window) {
+                    var diff = targetPropertyCount - keys.length;
 
-                // Add known Android properties
-                for (var i = 0; i < androidProps.length && propsAdded < neededCount; i++) {
-                    if (!(androidProps[i] in window)) {
-                        window[androidProps[i]] = undefined;
-                        propsAdded++;
+                    // If we need more properties, add dummy ones to the array
+                    if (diff > 0) {
+                        for (var i = 0; i < diff; i++) {
+                            keys.push('__spoofed_android_prop_' + i);
+                        }
+                    }
+                    // If we have too many, slice to exact count
+                    else if (diff < 0) {
+                        keys = keys.slice(0, targetPropertyCount);
                     }
                 }
 
-                // Fill remaining with numbered dummy properties if needed
-                while (propsAdded < neededCount) {
-                    var propName = '__android_prop_' + propsAdded;
-                    if (!(propName in window)) {
-                        window[propName] = undefined;
-                        propsAdded++;
-                    } else {
-                        propsAdded++;
-                    }
-                }
+                return keys;
+            };
 
-                console.log('[Lindo] Added', propsAdded, 'properties. New count:', Object.keys(window).length);
-            }
+            console.log('[Lindo] Object.keys() hooked - will report', targetPropertyCount, 'window properties');
+            console.log('[Lindo] Actual count will vary, but reported count is fixed at', targetPropertyCount);
         })();
 
         // Game init
@@ -354,7 +338,7 @@
         console.log('  - RAM: 10.07 GB (12 cores)');
         console.log('  - GPU: Qualcomm Adreno 660');
         console.log('  - Screen: 854x384 @ 2.8125 DPR');
-        console.log('  - Window properties: ' + Object.keys(window).length + ' (target: 370)');
+        console.log('  - Reported window properties: 370 (spoofed via Object.keys hook)');
         </script>
 
         <meta charset="UTF-8">
