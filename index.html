@@ -1,3 +1,5 @@
+<!-- C:\Users\SA-TOSHIBA\AppData\Roaming\Lindo\game\index.html
+ -->
 <!DOCTYPE HTML>
 <html lang="fr">
     <head>
@@ -353,52 +355,6 @@
             scriptScript.src = 'build/script.js';
             head.appendChild(scriptScript);
         };
-
-        // ✅ OPTION 3: Queue EventEmitter warnings to be logged after logger is ready
-        // This ensures warnings during early initialization get sent to the server
-        (function() {
-            var earlyWarnings = [];
-            var originalConsoleError = console.error;
-            var loggerReady = false;
-
-            console.log('[Lindo] Installing EventEmitter warning queue system...');
-
-            // Intercept console.error during early startup
-            console.error = function() {
-                var args = Array.prototype.slice.call(arguments);
-                var message = args[0];
-
-                // Check if this is an EventEmitter warning
-                if (typeof message === 'string' && message.indexOf('EventEmitter memory leak') !== -1) {
-                    if (!loggerReady) {
-                        // Queue it for later
-                        earlyWarnings.push(args);
-                        originalConsoleError.apply(console, args); // Still show in console
-                        console.log('[Lindo] ⏰ Queued EventEmitter warning for logger (will replay in 5s)');
-                    } else {
-                        // Logger is ready, pass through
-                        originalConsoleError.apply(console, args);
-                    }
-                } else {
-                    // Not an EventEmitter warning, pass through normally
-                    originalConsoleError.apply(console, args);
-                }
-            };
-
-            // After 5 seconds, assume logger is ready and replay warnings
-            setTimeout(function() {
-                loggerReady = true;
-                console.log('[Lindo] 🔄 Logger should be ready now, replaying', earlyWarnings.length, 'queued warnings');
-
-                // Replay queued warnings (logger's error channel should catch them now)
-                earlyWarnings.forEach(function(args) {
-                    originalConsoleError.apply(console, args);
-                });
-
-                earlyWarnings = [];
-                console.log('[Lindo] ✅ EventEmitter warnings replayed to logger');
-            }, 5000);
-        })();
 
         console.log('[Lindo] ✅ ALL SPOOFING COMPLETE - Ready for game load');
         console.log('[Lindo] Summary:');
