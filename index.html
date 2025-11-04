@@ -1,27 +1,25 @@
+<!DOCTYPE HTML>
 <html>
 
 <head>
-    <meta charset="utf-8">
-    <title>Dofus Touch</title>
     <!-- ================================================================
              🔥 PHASE 1: CRITICAL HARDWARE SPOOFING (Must be FIRST!)
              ================================================================ -->
     <script>
-        'use strict';
-        // ✅ Low-end device: 4GB RAM
+        // ✅ CRITICAL: Match EXACT RAM from real device (4GB = 4,294,967,296 bytes)
         Object.defineProperty(navigator, 'deviceMemory', {
-            get: () => 4,  // 4GB RAM (budget phone)
+            get: () => 4,
             configurable: true,
             enumerable: true
         });
 
-        // ✅ Connection type
+        // ✅ CRITICAL: Set connection type for performance reports
         Object.defineProperty(navigator, 'connection', {
             get: () => ({
                 type: 'wifi',
                 effectiveType: '4g',
-                downlink: 8,
-                rtt: 60,
+                downlink: 10,
+                rtt: 50,
                 saveData: false,
                 onchange: null
             }),
@@ -29,9 +27,9 @@
             enumerable: true
         });
 
-        // ✅ Low-end CPU: 4 cores
+        // ✅ CRITICAL: Low-end CPU: 4 cores (budget processor)
         Object.defineProperty(navigator, 'hardwareConcurrency', {
-            get: () => 4,  // 4 cores (budget processor)
+            get: () => 4,
             configurable: true,
             enumerable: true
         });
@@ -46,7 +44,7 @@
             configurable: true
         });
 
-        // ✅ Chrome memory API: 4GB = 4,294,967,296 bytes
+        // ✅ CRITICAL: Inject chrome.system.memory API for RAM capacity reporting
         if (!window.chrome) {
             window.chrome = {};
         }
@@ -55,23 +53,24 @@
         }
         window.chrome.system.memory = {
             getInfo: function (callback) {
+                // Return exact RAM capacity from real device (4GB = 4,294,967,296 bytes)
                 callback({
-                    capacity: 4294967296,  // 4GB in bytes
-                    availableCapacity: Math.round(4294967296 * 0.5)  // ~50% available
+                    capacity: 4294967296,
+                    availableCapacity: 4294967296 * 0.6  // ~60% available
                 });
             }
         };
+    </script>
 
-        console.log('[Lindo] Phase 1: Hardware spoofing (Low-end device)');
-        console.log('[Lindo] - RAM: 4GB, Cores: 4');
-
-        // PHASE 2: GPU SPOOFING (Budget GPU)
-
+    <!-- ================================================================
+             🔥 PHASE 2: GPU SPOOFING (Before any WebGL context creation)
+             ================================================================ -->
+    <script>
         const getParam = WebGLRenderingContext.prototype.getParameter;
         const getParam2 = WebGL2RenderingContext?.prototype?.getParameter;
 
         const spoofHandler = function (parameter) {
-            // Budget GPU: Adreno 506
+            // GPU identity - Adreno (TM) 506 (SM-A105FN low-end GPU)
             if (parameter === 37445) return 'Qualcomm';
             if (parameter === 37446) return 'Adreno (TM) 506';
 
@@ -81,7 +80,7 @@
             if (parameter === 7936) return 'WebKit';
             if (parameter === 7937) return 'WebKit WebGL';
 
-            // Lower GPU capabilities
+            // GPU capabilities (lower for budget device)
             if (parameter === 3379) return 4096;   // MAX_TEXTURE_SIZE (lower)
             if (parameter === 34024) return 8192;  // MAX_RENDERBUFFER_SIZE (lower)
 
@@ -92,11 +91,13 @@
         if (getParam2) {
             WebGL2RenderingContext.prototype.getParameter = spoofHandler;
         }
+    </script>
 
-        console.log('[Lindo] Phase 2: GPU spoofed - Qualcomm Adreno 506');
-
-        // PHASE 3: SCREEN & WINDOW SPOOFING (Lower resolution)
-
+    <!-- ================================================================
+             🔥 PHASE 3: SCREEN & WINDOW SPOOFING (Before DOM ready)
+             ================================================================ -->
+    <script>
+        // Lower resolution screen (640x360) - SM-A105FN
         Object.defineProperties(screen, {
             width: { get: () => 640, configurable: true, enumerable: true },
             height: { get: () => 360, configurable: true, enumerable: true },
@@ -123,27 +124,6 @@
             configurable: true
         });
 
-        // Lower JS Heap limits for budget device
-        if (window.performance?.memory) {
-            const origMemory = window.performance.memory;
-            Object.defineProperty(window.performance, 'memory', {
-                get: () => ({
-                    get jsHeapSizeLimit() { return 536870912; },  // 512MB heap limit
-                    get totalJSHeapSize() {
-                        return Math.min(origMemory.totalJSHeapSize || 50000000, 50000000);
-                    },
-                    get usedJSHeapSize() {
-                        return Math.min(origMemory.usedJSHeapSize || 45000000, 45000000);
-                    }
-                }),
-                configurable: true
-            });
-        }
-
-        console.log('[Lindo] Phase 3: Screen 640x360 @ DPR 3, Heap 512MB');
-
-        // PHASE 4: DEVICE UUID & CORDOVA SETUP
-
         function getOrCreateUUID() {
             var uuid = localStorage.getItem('lindo_device_uuid');
             if (!uuid) {
@@ -152,9 +132,6 @@
                     return Math.floor(Math.random() * 16).toString(16);
                 });
                 localStorage.setItem('lindo_device_uuid', uuid);
-                console.log('[Lindo] Generated NEW device UUID:', uuid);
-            } else {
-                console.log('[Lindo] Using EXISTING device UUID:', uuid);
             }
             return uuid;
         }
@@ -168,7 +145,7 @@
         window.buildVersion = window.top.buildVersion;
         window.appVersion = window.top.appVersion;
         window.appInfo = {
-            version: window.top.appVersion
+            version: window.appVersion
         };
 
         window._ = {
@@ -177,18 +154,8 @@
             client: "android"
         };
 
-        // Fake IndexedDB (use defineProperty to avoid read-only errors)
-        if (!window.indexedDB) {
-            try {
-                Object.defineProperty(window, 'indexedDB', {
-                    value: {},
-                    writable: true,
-                    configurable: true
-                });
-            } catch (e) {
-                console.warn('[Lindo] IndexedDB already defined:', e.message);
-            }
-        }
+        // Fake IndexedDB
+        window.indexedDB = window.indexedDB || {};
         window.IDBDatabase = window.IDBDatabase || {};
         window.IDBTransaction = window.IDBTransaction || {};
         window.IDBCursor = window.IDBCursor || {};
@@ -228,17 +195,16 @@
                 },
                 sim: {
                     getSimInfo: function (success, error) {
-                        success({
-                            carrierName: 'Orange',
-                            countryCode: 'ma',
-                            mcc: '604',
-                            mnc: '01',
-
-                            // All other fields intentionally empty / absent for privacy
-                            simSerialNumber: '',   // empty string
-                            subscriptionId: null,  // numeric field -> null (use 1 if the app requires a number)
-                            phoneNumber: null      // null is most realistic for "no number available"
-                        });
+                        // Permission denied - READ_PHONE_STATE not granted
+                        error('Permission denied: READ_PHONE_STATE');
+                    },
+                    hasReadPermission: function (success, error) {
+                        // Simulate permission revoked (Android 6.0+)
+                        success(false);
+                    },
+                    requestReadPermission: function (success, error) {
+                        // User denies permission request
+                        error('Permission request denied by user');
                     }
                 },
                 network: {
@@ -258,24 +224,24 @@
             }
         };
 
-        // Device Info
+        // Device Info - SM-A105FN with Android 9
         window.device = {
             cordova: '14.0.1',
-            model: 'SM-G998U',
+            model: 'SM-A105FN',
             platform: 'Android',
             uuid: deviceUUID,
             version: '9',
             manufacturer: 'samsung',
             isVirtual: false,
-            serial: 'unknown',  // unknown for privacy
+            serial: 'R38N8234ABC',
             brand: 'samsung',
             product: 'a10',
             device: 'a10',
-            hardware: 'exynos7884B',  // Exynos chipset
-            sdkVersion: 28,  // Android 9 = SDK 28
-            host: 'SWDD5610',
-            incremental: 'A105FDDU4CUH1',
-            fingerprint: 'samsung/a10dd/a10:9/PPR1.180610.011/A105FDDU4CUH1:user/release-keys'
+            hardware: 'exynos',
+            sdkVersion: 28,
+            host: 'SWDH5218',
+            incremental: 'PPR1.180610.011',
+            fingerprint: 'samsung/a10/a10:9/PPR1.180610.011/AB234567:user/release-keys'
         };
 
         // Extra Cordova globals
@@ -311,33 +277,20 @@
 
         // Game init
         window.initDofus = function (cb) {
-            console.log('[Lindo] initDofus called');
             var head = document.getElementsByTagName('head')[0];
             var scriptScript = document.createElement('script');
             scriptScript.addEventListener('load', function () {
-                console.log('[Lindo] script.js loaded');
                 var fixesScript = document.createElement('script');
                 fixesScript.src = 'fixes.js';
-                fixesScript.addEventListener('load', function () {
-                    console.log('[Lindo] fixes.js loaded');
-                    cb();
-                });
-                fixesScript.addEventListener('error', function (e) {
-                    console.error('[Lindo] Failed to load fixes.js:', e);
-                    cb(); // Call callback anyway to prevent hanging
-                });
                 head.appendChild(fixesScript);
-            });
-            scriptScript.addEventListener('error', function (e) {
-                console.error('[Lindo] Failed to load script.js:', e);
+                cb();
             });
             scriptScript.src = 'build/script.js';
             head.appendChild(scriptScript);
         };
-        console.log('[Lindo] ✅ ALL SPOOFING COMPLETE - initDofus defined:', typeof window.initDofus);
-
     </script>
 
+    <meta charset="UTF-8">
     <link rel="stylesheet" href="build/styles-native.css" />
     <link rel="stylesheet" href="fixes.css" />
 </head>
