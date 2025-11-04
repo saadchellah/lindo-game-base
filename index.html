@@ -138,6 +138,9 @@
 
         var deviceUUID = getOrCreateUUID();
 
+        // Application name for alert dialogs (from init.js)
+        window.APPLICATION_NAME_DISPLAY = 'Dofus Touch';
+
         // Touch fix
         window.ontouchstart = function (e) { };
 
@@ -226,7 +229,6 @@
 
         // Device Info - SM-A105FN with Android 9
         window.device = {
-            cordova: '14.0.1',
             model: 'SM-A105FN',
             platform: 'Android',
             uuid: deviceUUID,
@@ -254,6 +256,33 @@
         };
 
         window.plugins = window.cordova.plugins;
+
+        // Store original alert before overriding
+        var originalAlert = window.alert.bind(window);
+
+        // Navigator notification API (required for custom alert override)
+        if (!window.navigator.notification) {
+            window.navigator.notification = {
+                alert: function (message, alertCallback, title, buttonName) {
+                    // Use original browser alert
+                    originalAlert(message);
+                    if (alertCallback) alertCallback();
+                },
+                confirm: function (message, confirmCallback, title, buttonLabels) {
+                    var result = window.confirm(message);
+                    if (confirmCallback) confirmCallback(result ? 1 : 2);
+                },
+                prompt: function (message, promptCallback, title, buttonLabels, defaultText) {
+                    var result = window.prompt(message, defaultText);
+                    if (promptCallback) promptCallback({ buttonIndex: result ? 1 : 2, input1: result || '' });
+                }
+            };
+        }
+
+        // Custom alert override (from init.js)
+        window.alert = function (msg) {
+            window.navigator.notification.alert(msg, null, window.APPLICATION_NAME_DISPLAY, 'Ok');
+        };
 
         // macOS RAF fix
         if (window.top.platform == "darwin") {
