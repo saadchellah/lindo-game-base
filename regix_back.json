@@ -27,14 +27,6 @@
       "$1window.CharacterDisplay = $2, $3"
     ],
     [
-      "(var (\\w) = {\\s+call: \\w,\\s+data: \\w\\s+};)",
-      "$1 window.top.FileLoggerLib && window.top.FileLoggerLib.writeLindoLog($2);"
-    ],
-    [
-      "(}\\), \\w\\.on\\(\\\"data\\\", function\\((\\w)\\) {)",
-      "$1 window.top.FileLoggerLib && window.top.FileLoggerLib.writeLindoLog($2);"
-    ],
-    [
       "Math\\.min\\(Math\\.max\\((\\w),\\s?(\\w)\\),\\s?this\\.maxZoom\\)",
       "Math.max($1, $2)"
     ],
@@ -48,16 +40,12 @@
       "false && $1"
     ],
     [
+      "(this\\._mediatorUrl\\s?=\\s?)(\\w\\.mediatorUrl\\s?\\|\\|\\s?\"\")",
+      "$1\"\""
+    ],
+    [
       "new (\\w)\\(document\\.getElementsByClassName\\(\"dofusBody\"\\)\\[0\\]\\)",
       "new $1(document.getElementById(\"dofusBody\"))"
-    ],
-    [
-      "i\\.prototype\\.setMaxListeners = function\\(\\) \\{\\s+console\\.warn\\(\"Method setMaxListeners not supported, there is no limit to the number of listeners\"\\)\\s+\\}",
-      "i.prototype.setMaxListeners = function(n) { this._maxListeners = n || 10; }"
-    ],
-    [
-      "var i = this\\.eventHandlers,\\s+n = i\\[e\\];\\s+return void 0 === n \\? \\(i\\[e\\] = \\[t\\], this\\) : \\(n\\.push\\(t\\), this\\)\\)",
-      "var i = this.eventHandlers, n = i[e]; if (void 0 === n) { i[e] = [t]; } else { n.push(t); var maxListeners = this._maxListeners || 10; if (!this._warnedEvents) this._warnedEvents = {}; if (n.length > maxListeners && !this._warnedEvents[e]) { this._warnedEvents[e] = true; console.warn('(node) warning: possible EventEmitter memory leak detected. ' + n.length + ' listeners added. Use emitter.setMaxListeners() to increase limit.', n.length); } } return this"
     ]
   ],
   "build/styles-native.css": [
