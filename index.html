@@ -3,9 +3,14 @@
 
 <head>
     <!-- ================================================================
-             🔥 PHASE 1: CRITICAL HARDWARE SPOOFING (Must be FIRST!)
+             🔥 CONSOLIDATED DEVICE SPOOFING (All phases combined)
              ================================================================ -->
     <script>
+
+        // ================================================================
+        // PHASE 1: CRITICAL HARDWARE SPOOFING (Must be FIRST!)
+        // ================================================================
+        
         // ✅ CRITICAL: Match EXACT RAM from real device (4GB = 4,294,967,296 bytes)
         Object.defineProperty(navigator, 'deviceMemory', {
             get: () => 4,
@@ -60,12 +65,11 @@
                 });
             }
         };
-    </script>
 
-    <!-- ================================================================
-             🔥 PHASE 2: GPU SPOOFING (Before any WebGL context creation)
-             ================================================================ -->
-    <script>
+        // ================================================================
+        // PHASE 2: GPU SPOOFING (Before any WebGL context creation)
+        // ================================================================
+        
         const getParam = WebGLRenderingContext.prototype.getParameter;
         const getParam2 = WebGL2RenderingContext?.prototype?.getParameter;
 
@@ -91,12 +95,11 @@
         if (getParam2) {
             WebGL2RenderingContext.prototype.getParameter = spoofHandler;
         }
-    </script>
 
-    <!-- ================================================================
-             🔥 PHASE 3: SCREEN & WINDOW SPOOFING (Before DOM ready)
-             ================================================================ -->
-    <script>
+        // ================================================================
+        // PHASE 3: SCREEN & WINDOW SPOOFING (Before DOM ready)
+        // ================================================================
+        
         // Lower resolution screen (640x360) - SM-A105FN
         Object.defineProperties(screen, {
             width: { get: () => 640, configurable: true, enumerable: true },
@@ -164,11 +167,34 @@
         window.IDBCursor = window.IDBCursor || {};
         window.IDBKeyRange = window.IDBKeyRange || {};
 
+        // ================================================================
+        // CORDOVA PLUGINS & DEVICE INFO
+        // ================================================================
+        
+        // Device Info - SM-A105FN with Android 9
+        window.device = {
+            model: 'SM-A105FN',
+            platform: 'Android',
+            uuid: deviceUUID,
+            version: '9',
+            manufacturer: 'samsung',
+            isVirtual: false,
+            serial: 'R38N8234ABC',
+            brand: 'samsung',
+            product: 'a10',
+            device: 'a10',
+            hardware: 'exynos',
+            sdkVersion: 28,
+            host: 'SWDH5218',
+            incremental: 'PPR1.180610.011',
+            fingerprint: 'samsung/a10/a10:9/PPR1.180610.011/AB234567:user/release-keys'
+        };
+
         // Cordova Plugins
         window.cordova = {
             platformId: 'android',
-            platformVersion: '14.0.1',
-            version: '14.0.1',
+            platformVersion: '9.0.0',
+            version: '9.0.0',
             plugins: {
                 device: {
                     getInfo: function (success) {
@@ -227,25 +253,6 @@
             }
         };
 
-        // Device Info - SM-A105FN with Android 9
-        window.device = {
-            model: 'SM-A105FN',
-            platform: 'Android',
-            uuid: deviceUUID,
-            version: '9',
-            manufacturer: 'samsung',
-            isVirtual: false,
-            serial: 'R38N8234ABC',
-            brand: 'samsung',
-            product: 'a10',
-            device: 'a10',
-            hardware: 'exynos',
-            sdkVersion: 28,
-            host: 'SWDH5218',
-            incremental: 'PPR1.180610.011',
-            fingerprint: 'samsung/a10/a10:9/PPR1.180610.011/AB234567:user/release-keys'
-        };
-
         // Extra Cordova globals
         window.StatusBar = {
             hide: function () { },
@@ -284,6 +291,10 @@
             window.navigator.notification.alert(msg, null, window.APPLICATION_NAME_DISPLAY, 'Ok');
         };
 
+        // ================================================================
+        // UTILITY FUNCTIONS
+        // ================================================================
+        
         // macOS RAF fix
         if (window.top.platform == "darwin") {
             (function () {
@@ -319,7 +330,19 @@
         };
     </script>
 
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
+    <title>Dofus Touch</title>
+
+    <!-- Security & Mobile Meta Tags (from real Android game) -->
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="transparent">
+    <meta name="msapplication-tap-highlight" content="no">
+
+    <!-- Content Security Policy (CSP) - Adapted for Electron -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' http: https: data: wss: ws: file: 'unsafe-eval' 'unsafe-inline'; object-src 'none'">
+
     <link rel="stylesheet" href="build/styles-native.css" />
     <link rel="stylesheet" href="fixes.css" />
 </head>
