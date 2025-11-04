@@ -27,14 +27,6 @@
       "$1window.CharacterDisplay = $2, $3"
     ],
     [
-      "(var (\\w) = {\\s+call: \\w,\\s+data: \\w\\s+};)",
-      "$1 window.top.FileLoggerLib && window.top.FileLoggerLib.writeLindoLog($2);"
-    ],
-    [
-      "(}\\), \\w\\.on\\(\\\"data\\\", function\\((\\w)\\) {)",
-      "$1 window.top.FileLoggerLib && window.top.FileLoggerLib.writeLindoLog($2);"
-    ],
-    [
       "Math\\.min\\(Math\\.max\\((\\w),\\s?(\\w)\\),\\s?this\\.maxZoom\\)",
       "Math.max($1, $2)"
     ],
