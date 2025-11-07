@@ -47,10 +47,6 @@
     [
       "var i = this\\.eventHandlers,\\s+n = i\\[e\\];\\s+return void 0 === n \\? \\(i\\[e\\] = \\[t\\], this\\) : \\(n\\.push\\(t\\), this\\)\\)",
       "var i = this.eventHandlers, n = i[e]; if (void 0 === n) { i[e] = [t]; } else { n.push(t); var maxListeners = this._maxListeners || 10; if (!this._warnedEvents) this._warnedEvents = {}; if (n.length > maxListeners && !this._warnedEvents[e]) { this._warnedEvents[e] = true; console.warn('(node) warning: possible EventEmitter memory leak detected. ' + n.length + ' listeners added. Use emitter.setMaxListeners() to increase limit.', n.length); } } return this"
-    ],
-    [
-      "void 0===i&&console\\.warn\\(\"isFeatureOn\\(\"+e+\"\\) called before we can tell\"\\),",
-      "void 0===i&&void 0,"
     ]
   ],
   "build/styles-native.css": [
