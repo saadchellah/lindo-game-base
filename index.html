@@ -44,6 +44,56 @@
             configurable: true
         });
 
+        // ================================================================
+        // PHASE 1B: CLIENT HINTS API SPOOFING (SM-A105FN WebView 138)
+        // ================================================================
+        
+        Object.defineProperty(navigator, 'userAgentData', {
+            get: () => ({
+                brands: [
+                    { brand: "Android WebView", version: "138" },
+                    { brand: "Chromium", version: "138" },
+                    { brand: "Not?A_Brand", version: "8" }
+                ],
+                mobile: true,
+                platform: "Android",
+                getHighEntropyValues: async (hints) => {
+                    return {
+                        brands: [
+                            { brand: "Android WebView", version: "138" },
+                            { brand: "Chromium", version: "138" },
+                            { brand: "Not?A_Brand", version: "8" }
+                        ],
+                        fullVersionList: [
+                            { brand: "Android WebView", version: "138.0.7204.181" },
+                            { brand: "Chromium", version: "138.0.7204.181" },
+                            { brand: "Not?A_Brand", version: "8.0.0.0" }
+                        ],
+                        mobile: true,
+                        platform: "Android",
+                        platformVersion: "9.0.0",
+                        architecture: "",
+                        bitness: "",
+                        model: "SM-A105FN",
+                        uaFullVersion: "138.0.7204.181",
+                        wow64: false,
+                        formFactors: ["Mobile"]
+                    };
+                },
+                toJSON: () => ({
+                    brands: [
+                        { brand: "Android WebView", version: "138" },
+                        { brand: "Chromium", version: "138" },
+                        { brand: "Not?A_Brand", version: "8" }
+                    ],
+                    mobile: true,
+                    platform: "Android"
+                })
+            }),
+            configurable: true,
+            enumerable: true
+        });
+
         Object.defineProperty(navigator, 'maxTouchPoints', {
             get: () => 5,
             configurable: true
