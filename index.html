@@ -45,14 +45,28 @@
         });
 
         // ================================================================
-        // PHASE 1B: CLIENT HINTS API SPOOFING (SM-A105FN WebView 138)
+        // PHASE 1B: CLIENT HINTS API SPOOFING (Dynamic from User-Agent)
         // ================================================================
-        
+
+        // ✅ Get device info from parent Electron process (parsed from User-Agent)
+        const deviceInfo = window.top.gameContext?.deviceInfo || {
+            androidVersion: "9",
+            androidVersionFull: "9.0.0",
+            sdkVersion: 28,
+            model: "SM-A105FN",
+            manufacturer: "samsung",
+            brand: "samsung",
+            product: "a10",
+            buildId: "PQ3A.190905.001",
+            chromeVersion: "138",
+            chromeVersionFull: "138.0.7204.181"
+        };
+
         Object.defineProperty(navigator, 'userAgentData', {
             get: () => ({
                 brands: [
-                    { brand: "Android WebView", version: "138" },
-                    { brand: "Chromium", version: "138" },
+                    { brand: "Android WebView", version: deviceInfo.chromeVersion },
+                    { brand: "Chromium", version: deviceInfo.chromeVersion },
                     { brand: "Not?A_Brand", version: "8" }
                 ],
                 mobile: true,
@@ -60,30 +74,30 @@
                 getHighEntropyValues: async (hints) => {
                     return {
                         brands: [
-                            { brand: "Android WebView", version: "138" },
-                            { brand: "Chromium", version: "138" },
+                            { brand: "Android WebView", version: deviceInfo.chromeVersion },
+                            { brand: "Chromium", version: deviceInfo.chromeVersion },
                             { brand: "Not?A_Brand", version: "8" }
                         ],
                         fullVersionList: [
-                            { brand: "Android WebView", version: "138.0.7204.181" },
-                            { brand: "Chromium", version: "138.0.7204.181" },
+                            { brand: "Android WebView", version: deviceInfo.chromeVersionFull },
+                            { brand: "Chromium", version: deviceInfo.chromeVersionFull },
                             { brand: "Not?A_Brand", version: "8.0.0.0" }
                         ],
                         mobile: true,
                         platform: "Android",
-                        platformVersion: "9.0.0",
+                        platformVersion: deviceInfo.androidVersionFull,
                         architecture: "",
                         bitness: "",
-                        model: "SM-A105FN",
-                        uaFullVersion: "138.0.7204.181",
+                        model: deviceInfo.model,
+                        uaFullVersion: deviceInfo.chromeVersionFull,
                         wow64: false,
                         formFactors: ["Mobile"]
                     };
                 },
                 toJSON: () => ({
                     brands: [
-                        { brand: "Android WebView", version: "138" },
-                        { brand: "Chromium", version: "138" },
+                        { brand: "Android WebView", version: deviceInfo.chromeVersion },
+                        { brand: "Chromium", version: deviceInfo.chromeVersion },
                         { brand: "Not?A_Brand", version: "8" }
                     ],
                     mobile: true,
@@ -221,30 +235,30 @@
         // CORDOVA PLUGINS & DEVICE INFO
         // ================================================================
         
-        // Device Info - SM-A105FN with Android 9
+        // ✅ Device Info - Dynamically generated from parsed User-Agent
         window.device = {
-            model: 'SM-A105FN',
+            model: deviceInfo.model,
             platform: 'Android',
             uuid: deviceUUID,
-            version: '9',
-            manufacturer: 'samsung',
+            version: deviceInfo.androidVersion,
+            manufacturer: deviceInfo.manufacturer,
             isVirtual: false,
-            serial: 'R38N8234ABC',
-            brand: 'samsung',
-            product: 'a10',
-            device: 'a10',
+            serial: 'unknown',
+            brand: deviceInfo.brand,
+            product: deviceInfo.product,
+            device: deviceInfo.product,
             hardware: 'exynos',
-            sdkVersion: 28,
+            sdkVersion: deviceInfo.sdkVersion,
             host: 'SWDH5218',
             incremental: 'PPR1.180610.011',
-            fingerprint: 'samsung/a10/a10:9/PPR1.180610.011/AB234567:user/release-keys'
+            fingerprint: `${deviceInfo.brand}/${deviceInfo.product}/${deviceInfo.product}:${deviceInfo.androidVersion}/PPR1.180610.011/AB234567:user/release-keys`
         };
 
         // Cordova Plugins
         window.cordova = {
             platformId: 'android',
-            platformVersion: '9.0.0',
-            version: '9.0.0',
+            platformVersion: deviceInfo.androidVersionFull,
+            version: deviceInfo.androidVersionFull,
             plugins: {
                 device: {
                     getInfo: function (success) {
