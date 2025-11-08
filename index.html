@@ -58,6 +58,7 @@
             brand: "samsung",
             product: "a10",
             buildId: "PQ3A.190905.001",
+            incremental: "PQ3A.190905.001",
             chromeVersion: "138",
             chromeVersionFull: "138.0.7204.181"
         };
@@ -247,11 +248,11 @@
             brand: deviceInfo.brand,
             product: deviceInfo.product,
             device: deviceInfo.product,
-            hardware: 'exynos',
+            hardware: 'exynos9810',
             sdkVersion: deviceInfo.sdkVersion,
-            host: 'SWDH5218',
-            incremental: 'PPR1.180610.011',
-            fingerprint: `${deviceInfo.brand}/${deviceInfo.product}/${deviceInfo.product}:${deviceInfo.androidVersion}/PPR1.180610.011/AB234567:user/release-keys`
+            host: 'unknown',
+            incremental: deviceInfo.incremental,
+            fingerprint: `${deviceInfo.brand}/${deviceInfo.product}/${deviceInfo.product}:${deviceInfo.androidVersion}/${deviceInfo.incremental}/AB234567:user/release-keys`
         };
 
         // Cordova Plugins
