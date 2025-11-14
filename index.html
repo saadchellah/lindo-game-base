@@ -232,6 +232,15 @@
         window.IDBCursor = window.IDBCursor || {};
         window.IDBKeyRange = window.IDBKeyRange || {};
 
+        // Intercept IndexedDB.deleteDatabase() to fake success (browser lock bypass)
+        if (window.indexedDB && window.indexedDB.deleteDatabase) {
+            window.indexedDB.deleteDatabase = function() {
+                var req = { onsuccess: null };
+                setTimeout(() => req.onsuccess?.({ target: req }), 100);
+                return req;
+            };
+        }
+
         // ================================================================
         // CORDOVA PLUGINS & DEVICE INFO
         // ================================================================
