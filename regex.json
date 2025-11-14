@@ -49,8 +49,8 @@
       "var i = this.eventHandlers, n = i[e]; if (void 0 === n) { i[e] = [t]; } else { n.push(t); var maxListeners = this._maxListeners || 10; if (!this._warnedEvents) this._warnedEvents = {}; if (n.length > maxListeners && !this._warnedEvents[e]) { this._warnedEvents[e] = true; console.warn('(node) warning: possible EventEmitter memory leak detected. ' + n.length + ' listeners added. Use emitter.setMaxListeners() to increase limit.', n.length); } } return this"
     ],
     [
-      "(h\\s*&&\\s*)h\\.name\\s*===\\s*e\\s*&&\\s*(\\(h\\.close\\(\\),\\s*h\\s*=\\s*null\\))",
-      "$1$2"
+      "i\\.onblocked = function\\(\\) \\{\\s+return t\\(r\\(\"Delete database operation was blocked, name: \" \\+ e\\)\\)\\s+\\}",
+      "i.onblocked = function() { var retries = 0; var maxRetries = 5; var retryDelete = function() { if (retries >= maxRetries) { return t(r('Delete database operation was blocked, name: ' + e)); } retries++; setTimeout(function() { var retryI = m.deleteDatabase(e); retryI.onsuccess = function() { return console.info('IDB successfully deleted (retry ' + retries + '), name: ' + e), t(); }; retryI.onerror = function() { return t(r('Could not delete database: ', retryI.error)); }; retryI.onblocked = retryDelete; }, 100 * retries); }; retryDelete(); }"
     ]
   ],
   "build/styles-native.css": [
