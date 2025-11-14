@@ -48,9 +48,9 @@
       "var i = this\\.eventHandlers,\\s+n = i\\[e\\];\\s+return void 0 === n \\? \\(i\\[e\\] = \\[t\\], this\\) : \\(n\\.push\\(t\\), this\\)\\)",
       "var i = this.eventHandlers, n = i[e]; if (void 0 === n) { i[e] = [t]; } else { n.push(t); var maxListeners = this._maxListeners || 10; if (!this._warnedEvents) this._warnedEvents = {}; if (n.length > maxListeners && !this._warnedEvents[e]) { this._warnedEvents[e] = true; console.warn('(node) warning: possible EventEmitter memory leak detected. ' + n.length + ' listeners added. Use emitter.setMaxListeners() to increase limit.', n.length); } } return this"
     ],
-    [
+  [
       "i\\.onblocked = function\\(\\) \\{\\s+return t\\(r\\(\"Delete database operation was blocked, name: \" \\+ e\\)\\)\\s+\\}",
-      "i.onblocked = function() { var retries = 0; var maxRetries = 5; var retryDelete = function() { if (retries >= maxRetries) { return t(r('Delete database operation was blocked, name: ' + e)); } retries++; setTimeout(function() { var retryI = m.deleteDatabase(e); retryI.onsuccess = function() { return console.info('IDB successfully deleted (retry ' + retries + '), name: ' + e), t(); }; retryI.onerror = function() { return t(r('Could not delete database: ', retryI.error)); }; retryI.onblocked = retryDelete; }, 100 * retries); }; retryDelete(); }"
+      "i.onblocked = function() { var retries = 0; var maxRetries = 15; var retryDelete = function() { if (retries >= maxRetries) { return t(r('Delete database operation was blocked, name: ' + e)); } retries++; var delay = 200 + (retries * 300); console.info('IDB delete blocked, retry ' + retries + ' after ' + delay + 'ms'); setTimeout(function() { var retryI = m.deleteDatabase(e); retryI.onsuccess = function() { return console.info('IDB successfully deleted (retry ' + retries + '), name: ' + e), t(); }; retryI.onerror = function() { return t(r('Could not delete database: ', retryI.error)); }; retryI.onblocked = retryDelete; }, delay); }; retryDelete(); }"
     ]
   ],
   "build/styles-native.css": [
