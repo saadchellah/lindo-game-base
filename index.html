@@ -235,8 +235,30 @@
         // Intercept IndexedDB.deleteDatabase() to fake success (browser lock bypass)
         if (window.indexedDB && window.indexedDB.deleteDatabase) {
             window.indexedDB.deleteDatabase = function() {
-                var req = { onsuccess: null };
-                setTimeout(() => req.onsuccess?.({ target: req }), 100);
+                var listeners = [];
+                var req = {
+                    onsuccess: null,
+                    onblocked: null,
+                    onerror: null,
+                    addEventListener: function(event, callback) {
+                        listeners.push({ event: event, callback: callback });
+                    },
+                    removeEventListener: function(event, callback) {
+                        listeners = listeners.filter(l => !(l.event === event && l.callback === callback));
+                    },
+                    dispatchEvent: function(event) {
+                        listeners.forEach(l => {
+                            if (l.event === event.type) {
+                                l.callback(event);
+                            }
+                        });
+                    }
+                };
+                setTimeout(() => {
+                    if (req.onsuccess) {
+                        req.onsuccess({ target: req });
+                    }
+                }, 100);
                 return req;
             };
         }
