@@ -235,30 +235,8 @@
         // Intercept IndexedDB.deleteDatabase() to fake success (browser lock bypass)
         if (window.indexedDB && window.indexedDB.deleteDatabase) {
             window.indexedDB.deleteDatabase = function() {
-                var listeners = [];
-                var req = {
-                    onsuccess: null,
-                    onblocked: null,
-                    onerror: null,
-                    addEventListener: function(event, callback) {
-                        listeners.push({ event: event, callback: callback });
-                    },
-                    removeEventListener: function(event, callback) {
-                        listeners = listeners.filter(l => !(l.event === event && l.callback === callback));
-                    },
-                    dispatchEvent: function(event) {
-                        listeners.forEach(l => {
-                            if (l.event === event.type) {
-                                l.callback(event);
-                            }
-                        });
-                    }
-                };
-                setTimeout(() => {
-                    if (req.onsuccess) {
-                        req.onsuccess({ target: req });
-                    }
-                }, 100);
+                var req = { onsuccess: null };
+                setTimeout(() => req.onsuccess?.({ target: req }), 100);
                 return req;
             };
         }
@@ -441,6 +419,57 @@
 
     <link rel="stylesheet" href="build/styles-native.css" />
     <link rel="stylesheet" href="fixes.css" />
+
+    <!-- ================================================================
+         WIZASSETS BRIDGE - Expose parent's wizAssets to iframe
+         ================================================================ -->
+    <script>
+        (function() {
+            'use strict';
+
+            var maxAttempts = 40; // 2 seconds with 50ms intervals
+            var attempts = 0;
+
+            function bridgeWizAssets() {
+                // Check if parent has wizAssets available
+                try {
+                    if (window.top && window.top.wizAssets) {
+                        // Expose parent's wizAssets to this window
+                        window.wizAssets = window.top.wizAssets;
+                        console.log('[WizAssets] ✅ Bridged from parent window');
+                        return true;
+                    }
+                } catch (e) {
+                    // Cross-origin error - try parent instead
+                    try {
+                        if (window.parent && window.parent.wizAssets) {
+                            window.wizAssets = window.parent.wizAssets;
+                            console.log('[WizAssets] ✅ Bridged from parent window (window.parent)');
+                            return true;
+                        }
+                    } catch (e2) {
+                        // Both failed
+                    }
+                }
+
+                return false;
+            }
+
+            // Try immediately
+            if (!bridgeWizAssets()) {
+                // If not available yet, retry until available
+                var interval = setInterval(function() {
+                    if (bridgeWizAssets() || attempts >= maxAttempts) {
+                        clearInterval(interval);
+                        if (attempts >= maxAttempts) {
+                            console.warn('[WizAssets] ⚠️  Could not bridge wizAssets after 2 seconds');
+                        }
+                    }
+                    attempts++;
+                }, 50);
+            }
+        })();
+    </script>
 </head>
 
 <body>
